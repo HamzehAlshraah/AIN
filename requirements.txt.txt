@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-dotenv
+pydantic
+motor
+langchain
+openai
+python-multipart
+pymongo
+celery
+redis
+flower
