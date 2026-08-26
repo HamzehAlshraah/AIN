@@ -60,7 +60,7 @@ if not st.session_state.info_submitted:
 # ============================================================
 @st.cache_resource
 def load_model():
-    model_path = r"C:\Users\user\Downloads\marbert_risk_model_final"  # عدّل المسار حسب مكان الموديل عندك
+    model_path = "HazmehAlshraah/marbert-risk-model"  # ✅ من Hugging Face، مش مسار محلي
     model = AutoModelForSequenceClassification.from_pretrained(model_path)
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
