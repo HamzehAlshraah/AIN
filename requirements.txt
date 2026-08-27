@@ -15,3 +15,8 @@ transformers
 torch
 requests
 gspread
+streamlit
+transformers
+torch
+gspread
+google-auth
