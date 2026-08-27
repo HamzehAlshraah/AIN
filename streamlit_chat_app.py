@@ -1,51 +1,14 @@
 # -*- coding: utf-8 -*-
 """
-تطبيق عين - محادثة افتراضية لكشف الرسائل الخطرة + تسجيل تلقائي بقوقل شيت
-تشغيل محلي: streamlit run streamlit_chat_app.py
+تطبيق Streamlit - محادثة افتراضية لعرض موديل كشف الرسائل الخطرة
+تشغيل: streamlit run app.py
 """
 
 import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-import base64
-import json
-import gspread
-from google.oauth2.service_account import Credentials
-from datetime import datetime
 
 st.set_page_config(page_title="عين - كشف الرسائل الخطرة", page_icon="👁️", layout="centered")
-
-# ============================================================
-# الاتصال بقوقل شيت عبر Service Account (الطريقة الرسمية)
-# ============================================================
-@st.cache_resource
-def connect_sheet():
-    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-    encoded = st.secrets["gcp_service_account_b64"]
-    decoded_json = base64.b64decode(encoded).decode("utf-8")
-    creds_dict = json.loads(decoded_json)
-    creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
-    gc = gspread.authorize(creds)
-    sheet = gc.open("AIN-Logs").sheet1
-    return sheet
-    
-def log_to_sheet(sheet, session_info, text, label, confidence):
-    try:
-        sheet.append_row([
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            session_info["contact_name"],
-            session_info["contact_relation"],
-            session_info["platform"],
-            session_info["father_name"],
-            session_info["contact_method"],
-            session_info["contact_value"],
-            text,
-            label,
-            round(confidence, 4)
-        ])
-    except Exception as e:
-        st.warning(f"تعذّر حفظ السجل بقوقل شيت: {e}")
-
 
 # ============================================================
 # صفحة المعلومات الأولى (قبل بدء المحادثة)
@@ -92,13 +55,12 @@ if not st.session_state.info_submitted:
 
     st.stop()  # يمنع تحميل باقي الصفحة (الموديل + المحادثة) قبل تعبئة النموذج
 
-
 # ============================================================
-# تحميل الموديل من Hugging Face (مرة وحدة بس، محفوظ بالذاكرة)
+# تحميل الموديل (مرة وحدة بس، محفوظ بالذاكرة)
 # ============================================================
 @st.cache_resource
 def load_model():
-    model_path = "HazmehAlshraah/marbert-risk-model"  # موديل عين على Hugging Face
+    model_path = "HazmehAlshraah/marbert-risk-model" # عدّل المسار حسب مكان الموديل عندك
     model = AutoModelForSequenceClassification.from_pretrained(model_path)
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -107,7 +69,6 @@ def load_model():
     return model, tokenizer, device
 
 model, tokenizer, device = load_model()
-sheet = connect_sheet()
 
 # ============================================================
 # دالة التصنيف
@@ -122,18 +83,6 @@ def predict_risk(text):
     return label, prob
 
 # ============================================================
-# جمع معلومات الجلسة الحالية بقاموس (يسهّل تمريرها لدالة الحفظ)
-# ============================================================
-session_info = {
-    "contact_name": st.session_state.contact_name,
-    "contact_relation": st.session_state.contact_relation,
-    "platform": st.session_state.platform,
-    "father_name": st.session_state.father_name,
-    "contact_method": st.session_state.contact_method,
-    "contact_value": st.session_state.contact_value,
-}
-
-# ============================================================
 # واجهة الصفحة
 # ============================================================
 st.title("👁️ عين")
@@ -142,13 +91,13 @@ st.caption("محادثة تجريبية — كل رسالة بتتفحص فور�
 with st.expander("📋 معلومات هذه الجلسة"):
     col1, col2 = st.columns(2)
     with col1:
-        st.write(f"**الشخص المتحدث:** {session_info['contact_name']}")
-        st.write(f"**الصلة:** {session_info['contact_relation']}")
-        st.write(f"**المنصة:** {session_info['platform']}")
+        st.write(f"**الشخص المتحدث:** {st.session_state.contact_name}")
+        st.write(f"**الصلة:** {st.session_state.contact_relation}")
+        st.write(f"**المنصة:** {st.session_state.platform}")
     with col2:
-        st.write(f"**الأب/الأم:** {session_info['father_name']}")
-        st.write(f"**التنبيه عبر:** {session_info['contact_method']}")
-        st.write(f"**{session_info['contact_method']}:** {session_info['contact_value']}")
+        st.write(f"**الأب/الأم:** {st.session_state.father_name}")
+        st.write(f"**التنبيه عبر:** {st.session_state.contact_method}")
+        st.write(f"**{st.session_state.contact_method}:** {st.session_state.contact_value}")
 
 # تهيئة سجل المحادثة بالذاكرة
 if "messages" not in st.session_state:
@@ -171,10 +120,7 @@ if user_input:
     # تصنيف الرسالة
     label, confidence = predict_risk(user_input)
 
-    # تسجيل الرسالة بقوقل شيت (معلومات الجلسة + النص + التصنيف)
-    log_to_sheet(sheet, session_info, user_input, label, confidence)
-
-    # حفظ الرسالة بسجل المحادثة (الذاكرة المؤقتة، لعرضها بالواجهة فقط)
+    # حفظ الرسالة بسجل المحادثة
     st.session_state.messages.append({
         "role": "user",
         "text": user_input,
