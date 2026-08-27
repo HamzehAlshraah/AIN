@@ -19,12 +19,14 @@ st.set_page_config(page_title="عين - كشف الرسائل الخطرة", pag
 @st.cache_resource
 def connect_sheet():
     scopes = ["https://www.googleapis.com/auth/spreadsheets"]
-    creds_dict = dict(st.secrets["gcp_service_account"])
+    encoded = st.secrets["gcp_service_account_b64"]
+    decoded_json = base64.b64decode(encoded).decode("utf-8")
+    creds_dict = json.loads(decoded_json)
     creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
     gc = gspread.authorize(creds)
-    sheet = gc.open("AIN-Logs").sheet1   # ⚠️ تأكد الاسم مطابق تماماً لاسم شيتك
+    sheet = gc.open("AIN-Logs").sheet1
     return sheet
-
+    
 def log_to_sheet(sheet, session_info, text, label, confidence):
     try:
         sheet.append_row([
