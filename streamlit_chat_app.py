@@ -7,33 +7,38 @@
 import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
-import requests
+import gspread
+from google.oauth2.service_account import Credentials
+from datetime import datetime
 
 st.set_page_config(page_title="عين - كشف الرسائل الخطرة", page_icon="👁️", layout="centered")
 
 # ============================================================
-# رابط Google Apps Script (Web App) - يستقبل الرسائل ويكتبها بالشيت
+# الاتصال بقوقل شيت عبر Service Account (الطريقة الرسمية)
 # ============================================================
-SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxZqPmk60S427pnmYprtl3UrGhGNSVdNvr_YK9kCep13GjQ9XVOg6FrNvRWCpdpO9sH/exec"
+@st.cache_resource
+def connect_sheet():
+    scopes = ["https://www.googleapis.com/auth/spreadsheets"]
+    creds_dict = dict(st.secrets["gcp_service_account"])
+    creds = Credentials.from_service_account_info(creds_dict, scopes=scopes)
+    gc = gspread.authorize(creds)
+    sheet = gc.open("AIN-Logs").sheet1   # ⚠️ تأكد الاسم مطابق تماماً لاسم شيتك
+    return sheet
 
-def log_to_sheet(session_info, text, label, confidence):
+def log_to_sheet(sheet, session_info, text, label, confidence):
     try:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
-            "Content-Type": "application/json"
-        }
-        response = requests.post(SHEET_WEBHOOK_URL, json={
-            "contact_name": session_info["contact_name"],
-            "contact_relation": session_info["contact_relation"],
-            "platform": session_info["platform"],
-            "father_name": session_info["father_name"],
-            "contact_method": session_info["contact_method"],
-            "contact_value": session_info["contact_value"],
-            "text": text,
-            "label": label,
-            "confidence": round(confidence, 4)
-        }, headers=headers, timeout=15, allow_redirects=True)
-        st.info(f"🔍 تشخيص مؤقت — رد السيرفر: {response.status_code} | {response.text[:300]}")
+        sheet.append_row([
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            session_info["contact_name"],
+            session_info["contact_relation"],
+            session_info["platform"],
+            session_info["father_name"],
+            session_info["contact_method"],
+            session_info["contact_value"],
+            text,
+            label,
+            round(confidence, 4)
+        ])
     except Exception as e:
         st.warning(f"تعذّر حفظ السجل بقوقل شيت: {e}")
 
@@ -98,6 +103,7 @@ def load_model():
     return model, tokenizer, device
 
 model, tokenizer, device = load_model()
+sheet = connect_sheet()
 
 # ============================================================
 # دالة التصنيف
@@ -162,7 +168,7 @@ if user_input:
     label, confidence = predict_risk(user_input)
 
     # تسجيل الرسالة بقوقل شيت (معلومات الجلسة + النص + التصنيف)
-    log_to_sheet(session_info, user_input, label, confidence)
+    log_to_sheet(sheet, session_info, user_input, label, confidence)
 
     # حفظ الرسالة بسجل المحادثة (الذاكرة المؤقتة، لعرضها بالواجهة فقط)
     st.session_state.messages.append({
