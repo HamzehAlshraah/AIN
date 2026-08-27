@@ -1,14 +1,37 @@
 # -*- coding: utf-8 -*-
 """
-تطبيق Streamlit - محادثة افتراضية لعرض موديل كشف الرسائل الخطرة
-تشغيل: streamlit run app.py
+تطبيق عين - محادثة افتراضية لكشف الرسائل الخطرة + تسجيل تلقائي بقوقل شيت
+تشغيل محلي: streamlit run streamlit_chat_app.py
 """
 
 import streamlit as st
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 import torch
+import requests
 
 st.set_page_config(page_title="عين - كشف الرسائل الخطرة", page_icon="👁️", layout="centered")
+
+# ============================================================
+# رابط Google Apps Script (Web App) - يستقبل الرسائل ويكتبها بالشيت
+# ============================================================
+SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwmH5fo4yDT19vWZkK2Inc_d60BrcmomrAjk5gqB8rI3JaNzyOi7tjH6xylstfOpkun/exec"
+
+def log_to_sheet(session_info, text, label, confidence):
+    try:
+        requests.post(SHEET_WEBHOOK_URL, json={
+            "contact_name": session_info["contact_name"],
+            "contact_relation": session_info["contact_relation"],
+            "platform": session_info["platform"],
+            "father_name": session_info["father_name"],
+            "contact_method": session_info["contact_method"],
+            "contact_value": session_info["contact_value"],
+            "text": text,
+            "label": label,
+            "confidence": round(confidence, 4)
+        }, timeout=10)
+    except Exception as e:
+        st.warning(f"تعذّر حفظ السجل بقوقل شيت: {e}")
+
 
 # ============================================================
 # صفحة المعلومات الأولى (قبل بدء المحادثة)
@@ -55,12 +78,13 @@ if not st.session_state.info_submitted:
 
     st.stop()  # يمنع تحميل باقي الصفحة (الموديل + المحادثة) قبل تعبئة النموذج
 
+
 # ============================================================
-# تحميل الموديل (مرة وحدة بس، محفوظ بالذاكرة)
+# تحميل الموديل من Hugging Face (مرة وحدة بس، محفوظ بالذاكرة)
 # ============================================================
 @st.cache_resource
 def load_model():
-    model_path = "HazmehAlshraah/marbert-risk-model"  # ✅ من Hugging Face، مش مسار محلي
+    model_path = "HazmehAlshraah/marbert-risk-model"  # موديل عين على Hugging Face
     model = AutoModelForSequenceClassification.from_pretrained(model_path)
     tokenizer = AutoTokenizer.from_pretrained(model_path)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -83,6 +107,18 @@ def predict_risk(text):
     return label, prob
 
 # ============================================================
+# جمع معلومات الجلسة الحالية بقاموس (يسهّل تمريرها لدالة الحفظ)
+# ============================================================
+session_info = {
+    "contact_name": st.session_state.contact_name,
+    "contact_relation": st.session_state.contact_relation,
+    "platform": st.session_state.platform,
+    "father_name": st.session_state.father_name,
+    "contact_method": st.session_state.contact_method,
+    "contact_value": st.session_state.contact_value,
+}
+
+# ============================================================
 # واجهة الصفحة
 # ============================================================
 st.title("👁️ عين")
@@ -91,13 +127,13 @@ st.caption("محادثة تجريبية — كل رسالة بتتفحص فور�
 with st.expander("📋 معلومات هذه الجلسة"):
     col1, col2 = st.columns(2)
     with col1:
-        st.write(f"**الشخص المتحدث:** {st.session_state.contact_name}")
-        st.write(f"**الصلة:** {st.session_state.contact_relation}")
-        st.write(f"**المنصة:** {st.session_state.platform}")
+        st.write(f"**الشخص المتحدث:** {session_info['contact_name']}")
+        st.write(f"**الصلة:** {session_info['contact_relation']}")
+        st.write(f"**المنصة:** {session_info['platform']}")
     with col2:
-        st.write(f"**الأب/الأم:** {st.session_state.father_name}")
-        st.write(f"**التنبيه عبر:** {st.session_state.contact_method}")
-        st.write(f"**{st.session_state.contact_method}:** {st.session_state.contact_value}")
+        st.write(f"**الأب/الأم:** {session_info['father_name']}")
+        st.write(f"**التنبيه عبر:** {session_info['contact_method']}")
+        st.write(f"**{session_info['contact_method']}:** {session_info['contact_value']}")
 
 # تهيئة سجل المحادثة بالذاكرة
 if "messages" not in st.session_state:
@@ -120,7 +156,10 @@ if user_input:
     # تصنيف الرسالة
     label, confidence = predict_risk(user_input)
 
-    # حفظ الرسالة بسجل المحادثة
+    # تسجيل الرسالة بقوقل شيت (معلومات الجلسة + النص + التصنيف)
+    log_to_sheet(session_info, user_input, label, confidence)
+
+    # حفظ الرسالة بسجل المحادثة (الذاكرة المؤقتة، لعرضها بالواجهة فقط)
     st.session_state.messages.append({
         "role": "user",
         "text": user_input,
