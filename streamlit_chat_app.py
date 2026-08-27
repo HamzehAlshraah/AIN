@@ -18,6 +18,10 @@ SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxZqPmk60S427pnmYpr
 
 def log_to_sheet(session_info, text, label, confidence):
     try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36",
+            "Content-Type": "application/json"
+        }
         response = requests.post(SHEET_WEBHOOK_URL, json={
             "contact_name": session_info["contact_name"],
             "contact_relation": session_info["contact_relation"],
@@ -28,7 +32,7 @@ def log_to_sheet(session_info, text, label, confidence):
             "text": text,
             "label": label,
             "confidence": round(confidence, 4)
-        }, timeout=10)
+        }, headers=headers, timeout=15, allow_redirects=True)
         st.info(f"🔍 تشخيص مؤقت — رد السيرفر: {response.status_code} | {response.text[:300]}")
     except Exception as e:
         st.warning(f"تعذّر حفظ السجل بقوقل شيت: {e}")
