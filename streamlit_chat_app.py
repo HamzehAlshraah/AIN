@@ -14,11 +14,11 @@ st.set_page_config(page_title="عين - كشف الرسائل الخطرة", pag
 # ============================================================
 # رابط Google Apps Script (Web App) - يستقبل الرسائل ويكتبها بالشيت
 # ============================================================
-SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbwmH5fo4yDT19vWZkK2Inc_d60BrcmomrAjk5gqB8rI3JaNzyOi7tjH6xylstfOpkun/exec"
+SHEET_WEBHOOK_URL = "https://script.google.com/macros/s/AKfycbxZqPmk60S427pnmYprtl3UrGhGNSVdNvr_YK9kCep13GjQ9XVOg6FrNvRWCpdpO9sH/exec"
 
 def log_to_sheet(session_info, text, label, confidence):
     try:
-        requests.post(SHEET_WEBHOOK_URL, json={
+        response = requests.post(SHEET_WEBHOOK_URL, json={
             "contact_name": session_info["contact_name"],
             "contact_relation": session_info["contact_relation"],
             "platform": session_info["platform"],
@@ -29,6 +29,7 @@ def log_to_sheet(session_info, text, label, confidence):
             "label": label,
             "confidence": round(confidence, 4)
         }, timeout=10)
+        st.info(f"🔍 تشخيص مؤقت — رد السيرفر: {response.status_code} | {response.text[:300]}")
     except Exception as e:
         st.warning(f"تعذّر حفظ السجل بقوقل شيت: {e}")
 
