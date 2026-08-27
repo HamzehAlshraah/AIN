@@ -14,3 +14,4 @@ streamlit
 transformers
 torch
 requests
+gspread
