@@ -18,8 +18,7 @@
 * **اللغة الأساسية:** Python 3.x
 * **المكتبات:** 
   * `NumPy` / `Pandas` (للمعالجة والتحليل)
-  * `Scikit-Learn` / `PyTorch` / `TensorFlow` (لبناء النماذج)
-  * `Matplotlib` / `Seaborn` (لرسم وتصور البيانات)
+  * `Scikit-Learn` / `PyTorch`  (لبناء النماذج)
 
 ---
 
