@@ -1,4 +1,4 @@
-# 🤖 AIN (Artificial Intelligence Network)
+# 🤖 AIN 
 
 مشروع ذكاء اصطناعي يهدف إلى معالجة وتحليل البيانات باستخدام تقنيات التعلم الآلي والتعلم العميق (Machine Learning & Deep Learning).
 
