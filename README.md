@@ -2,6 +2,13 @@
 
 نظام ذكاء اصطناعي لحماية الأطفال من الرسائل الخطرة، عبر تحليل المحادثات العربية في الوقت الفعلي وتنبيه الأهل عند رصد محتوى مقلق.
 
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ainhchild.streamlit.app/)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
+![Model](https://img.shields.io/badge/Model-MARBERTv2-orange)
+
+**🔗 [جرّب التطبيق مباشرة](https://ainhchild.streamlit.app/)**
+
+
 ## 🎯 الفكرة
 
 يستخدم عين نموذج **MARBERTv2** (نموذج عربي متخصص مبني على بنية BERT) لتصنيف الرسائل النصية العربية إلى فئتين: **آمنة (Safe)** أو **خطرة (risky)** — بهدف كشف أنماط التنمر الإلكتروني، التحرش، ومحاولات الاستدراج الموجهة للأطفال والمراهقين.
