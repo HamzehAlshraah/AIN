@@ -9,7 +9,7 @@ col_1,col_2=st.columns(2)
 with col_1:
     st.image("app/AIN logo.jpg")
 with col_2:
-    st.set_page_config(page_title="عين | AIN", page_icon="👁️", layout="centered")
+    st.set_page_config(page_title="عين | AIN")
 
 st.markdown(
     "<h1 style='text-align:center; font-size:64px;'>👁️ AIN</h1>",
