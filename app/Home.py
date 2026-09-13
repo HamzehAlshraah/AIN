@@ -6,8 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 st.image("app/AIN logo.jpg")
 st.set_page_config(page_title="عين | AIN", page_icon="👁️", layout="centered")
 
-st.markdown("<h1> style='text-align:center; font-size:64px;'👁️ AIN</h1>",
-    unsafe_allow_html=True)
+st.markdown("<h1 style='text-align:center; font-size:64px;'>👁️ AIN</h1>",unsafe_allow_html=True)
 st.markdown("<p style='text-align:center; font-size:20px; color:#555;'</h1>"
     "نظام ذكاء اصطناعي عربي للمساعدة في اكتشاف<br>"
     "الرسائل الخطرة الموجهة للأطفال"
