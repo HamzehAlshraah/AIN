@@ -6,7 +6,7 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".
 
 import streamlit as st
 from ain.model.inference import analyze_message
-from ain.risk.engine import evaluate_risk
+from ain.Risk.Engine import evaluate_risk
 from components.risk_meter import render_risk_meter
 
 st.set_page_config(page_title="Live Demo | AIN", page_icon="👁️", layout="wide")
