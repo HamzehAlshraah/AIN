@@ -8,7 +8,7 @@ st.set_page_config(page_title="عين | AIN", page_icon="👁️", layout="cente
 
 st.markdown("<h1> style='text-align:center; font-size:64px;'👁️ AIN</h1>",
     unsafe_allow_html=True)
-st.markdown("<p style='text-align:center; font-size:20px; color:#555;'>"
+st.markdown("<p style='text-align:center; font-size:20px; color:#555;'/h1>"
     "نظام ذكاء اصطناعي عربي للمساعدة في اكتشاف<br>"
     "الرسائل الخطرة الموجهة للأطفال"
     "</p>", unsafe_allow_html=True)
