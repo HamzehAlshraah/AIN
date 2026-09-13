@@ -10,9 +10,7 @@ if not messages:
     st.info("لا توجد رسائل محلّلة بعد. جرّب صفحة Live Demo أولاً.")
     st.stop()
 
-# ============================================================
-# بطاقات الإحصائيات العلوية
-# ============================================================
+
 total_messages = len(messages)
 risk_events = sum(1 for m in messages if m["severity"] in ("MEDIUM", "HIGH"))
 highest_risk = max(m["risk_score"] for m in messages)
