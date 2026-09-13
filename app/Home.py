@@ -40,4 +40,4 @@ st.write("")
 col_a, col_b, col_c = st.columns([1, 1, 1])
 with col_b:
     if st.button("ابدأ تجربة AIN", use_container_width=True, type="primary"):
-        st.switch_page("pages/live_Demo.py")
+        st.switch_page("pages/live_demo.py")
