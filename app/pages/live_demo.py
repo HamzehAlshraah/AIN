@@ -6,7 +6,7 @@ from ain.Risk.Engine import evaluate_risk
 from components.risk_meter import render_risk_meter
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 st.set_page_config(page_title="Live Demo | AIN", page_icon="👁️", layout="wide")
-st.title("👁️ AIN — Live Demo)
+st.title("👁️ AIN — Live Demo")
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "current_risk" not in st.session_state:
