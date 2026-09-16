@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 
 from ain.model.inference import model
+from api.routes.analyze import router as analyze_router
+
 
 app = FastAPI(
     title="AIN API",
@@ -15,3 +17,6 @@ def health_check():
         "status": "ok",
         "model": "loaded" if model is not None else "not_loaded",
     }
+
+
+app.include_router(analyze_router)
