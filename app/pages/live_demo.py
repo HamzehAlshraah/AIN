@@ -1,12 +1,15 @@
 import sys
 import os
 import streamlit as st
-from ain.model.inference import analyze_message
-from ain.Risk.Engine import evaluate_risk
+from services.api_client import analyze_message, get_or_create_conversation_id
 from components.risk_meter import render_risk_meter
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 st.set_page_config(page_title="Live Demo | AIN", page_icon="👁️", layout="wide")
 st.title("👁️ AIN — Live Demo")
+
+conversation_id = get_or_create_conversation_id()
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "current_risk" not in st.session_state:
@@ -26,14 +29,20 @@ with col_chat:
     if user_input:
         st.session_state.messages.append({"role": "user", "text": user_input})
 
-        result = analyze_message(user_input)              
-        risk_info = evaluate_risk(result["risk_score"])    
+        try:
+            result = analyze_message(
+                text=user_input,
+                conversation_id=conversation_id,
+                platform="streamlit",
+            )
+        except Exception as e:
+            st.error(f"تعذّر الاتصال بالـ API: {e}")
+            st.stop()
 
-        full_result = {**result, **risk_info, "text": user_input}
-        st.session_state.messages[-1].update(full_result)
+        st.session_state.messages[-1].update(result)
 
-        st.session_state.current_risk = risk_info["risk_score"]
-        st.session_state.current_severity = risk_info["severity"]
+        st.session_state.current_risk = result["risk_score"]
+        st.session_state.current_severity = result["severity"]
         st.rerun()
 
 with col_monitor:

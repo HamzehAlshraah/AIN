@@ -2,6 +2,7 @@ fastapi
 uvicorn
 python-dotenv
 pydantic
+SQLAlchemy
 motor
 langchain
 openai
@@ -14,9 +15,5 @@ streamlit
 transformers
 torch
 requests
-gspread
-streamlit
-transformers
-torch
 gspread
 google-auth
