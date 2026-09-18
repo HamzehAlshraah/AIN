@@ -1,9 +1,10 @@
 from datetime import datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from ain.database.models import Alert, Feedback, Message, Parent
+
 
 def create_message(
     db: Session,
@@ -51,13 +52,40 @@ def create_alert(
     return alert
 
 
-def get_alert(db: Session, alert_id: int) -> Alert | None:
+def get_alert(
+    db: Session,
+    alert_id: int,
+) -> Alert | None:
     return db.get(Alert, alert_id)
 
 
-def get_alerts(db: Session) -> list[Alert]:
-    statement = select(Alert).order_by(Alert.created_at.desc())
+def get_alerts(
+    db: Session,
+) -> list[Alert]:
+    statement = (
+        select(Alert)
+        .order_by(Alert.created_at.desc())
+    )
+
     return list(db.scalars(statement).all())
+
+
+def update_alert_status(
+    db: Session,
+    alert: Alert,
+    status: str,
+) -> Alert:
+    alert.status = status
+
+    if status in {"REVIEWED", "DISMISSED"}:
+        alert.reviewed_at = datetime.utcnow()
+    else:
+        alert.reviewed_at = None
+
+    db.commit()
+    db.refresh(alert)
+
+    return alert
 
 
 def get_recent_alert_for_conversation(
@@ -79,6 +107,19 @@ def get_recent_alert_for_conversation(
     return db.scalars(statement).first()
 
 
+def get_messages_by_conversation(
+    db: Session,
+    conversation_id: str,
+) -> list[Message]:
+    statement = (
+        select(Message)
+        .where(Message.conversation_id == conversation_id)
+        .order_by(Message.created_at.asc())
+    )
+
+    return list(db.scalars(statement).all())
+
+
 def create_feedback(
     db: Session,
     message: str,
@@ -96,6 +137,8 @@ def create_feedback(
     db.refresh(feedback)
 
     return feedback
+
+
 def get_parent_by_conversation(
     db: Session,
     conversation_id: str,
@@ -106,6 +149,8 @@ def get_parent_by_conversation(
     )
 
     return db.scalars(statement).first()
+
+
 def create_parent(
     db: Session,
     conversation_id: str,
@@ -123,24 +168,41 @@ def create_parent(
     db.refresh(parent)
 
     return parent
-from sqlalchemy import func
 
 
-def count_messages(db: Session) -> int:
-    return db.scalar(select(func.count(Message.id))) or 0
+def count_messages(
+    db: Session,
+) -> int:
+    return db.scalar(
+        select(func.count(Message.id))
+    ) or 0
 
 
-def count_risk_events(db: Session) -> int:
-    """عدد الرسائل يلي طلعت أي مستوى خطر (مش SAFE)."""
-    statement = select(func.count(Message.id)).where(Message.severity != "SAFE")
+def count_risk_events(
+    db: Session,
+) -> int:
+    statement = select(
+        func.count(Message.id)
+    ).where(
+        Message.severity != "SAFE"
+    )
+
     return db.scalar(statement) or 0
 
 
-def count_high_risk_events(db: Session) -> int:
-    """عدد الـ Alerts (كلهم HIGH أصلاً، لأنه هيك بيتنشأ Alert)."""
-    return db.scalar(select(func.count(Alert.id))) or 0
+def count_high_risk_events(
+    db: Session,
+) -> int:
+    return db.scalar(
+        select(func.count(Alert.id))
+    ) or 0
 
 
-def get_highest_risk_score(db: Session) -> float:
-    result = db.scalar(select(func.max(Message.risk_score)))
+def get_highest_risk_score(
+    db: Session,
+) -> float:
+    result = db.scalar(
+        select(func.max(Message.risk_score))
+    )
+
     return result if result is not None else 0.0

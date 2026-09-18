@@ -32,6 +32,11 @@ def get_db():
 
 
 def init_db():
-    from ain.database.models import Message, Alert, Feedback
+    from ain.database.models import (
+        Alert,
+        Feedback,
+        Message,
+        Parent,
+    )
 
     Base.metadata.create_all(bind=engine)
