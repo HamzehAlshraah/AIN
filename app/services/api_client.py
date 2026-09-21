@@ -29,7 +29,6 @@ class APIClient:
         )
 
         response.raise_for_status()
-
         return response.json()
 
     # =========================
@@ -55,9 +54,7 @@ class APIClient:
         platform: str | None = None,
     ):
         if conversation_id is None:
-            conversation_id = (
-                self.get_or_create_conversation_id()
-            )
+            conversation_id = self.get_or_create_conversation_id()
 
         payload = {
             "text": text,
@@ -78,8 +75,8 @@ class APIClient:
     def register_parent(
         self,
         conversation_id: str,
-        name: str,
         email: str,
+        name: str | None = None,
     ):
         payload = {
             "conversation_id": conversation_id,
@@ -146,27 +143,8 @@ class APIClient:
             "GET",
             f"/api/v1/conversations/{conversation_id}/messages",
         )
-    # =========================
-# Backward Compatibility
-# =========================
-
-def get_or_create_conversation_id() -> str:
-    client = APIClient()
-    return client.get_or_create_conversation_id()
 
 
-def analyze_message(
-    text: str,
-    conversation_id: str | None = None,
-    platform: str | None = None,
-):
-    client = APIClient()
-
-    return client.analyze_message(
-        text=text,
-        conversation_id=conversation_id,
-        platform=platform,
-    )
 # =========================
 # Backward Compatibility
 # =========================
@@ -192,13 +170,13 @@ def analyze_message(
 
 def register_parent(
     conversation_id: str,
-    name: str,
     email: str,
+    name: str | None = None,
 ):
     client = APIClient()
 
     return client.register_parent(
         conversation_id=conversation_id,
-        name=name,
         email=email,
+        name=name,
     )
