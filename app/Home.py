@@ -2,7 +2,9 @@ import os
 import sys
 
 import streamlit as st
+from components.sidebar import render_sidebar
 
+render_sidebar()
 
 sys.path.append(
     os.path.abspath(
@@ -21,7 +23,6 @@ st.set_page_config(
 )
 
 
-st.image("app/AIN logo.jpg")
 
 
 st.markdown(

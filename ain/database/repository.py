@@ -100,6 +100,7 @@ def get_recent_alert_for_conversation(
         .where(
             Alert.conversation_id == conversation_id,
             Alert.created_at >= cutoff,
+            Alert.n8n_sent.is_(True),
         )
         .order_by(Alert.created_at.desc())
     )
@@ -170,9 +171,7 @@ def create_parent(
     return parent
 
 
-def count_messages(
-    db: Session,
-) -> int:
+def count_messages(db: Session) -> int:
     return db.scalar(
         select(func.count(Message.id))
     ) or 0

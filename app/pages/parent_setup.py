@@ -1,7 +1,10 @@
 import streamlit as st
+
 import requests
 from services.api_client import get_or_create_conversation_id, register_parent
+from components.sidebar import render_sidebar
 
+render_sidebar()
 st.set_page_config(page_title="Parent Setup | AIN", page_icon="✉️", layout="centered")
 st.title("✉️ تسجيل ولي الأمر")
 

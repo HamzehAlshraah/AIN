@@ -1,17 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-
+from ain.alerts.service import AlertService
 from api.schemas import AnalyzeRequest, AnalyzeResponse
 from ain.Risk.Engine import evaluate_risk
 from ain.model.inference import analyze_message as run_model
 from ain.database.database import get_db
 from ain.database.repository import (
     create_message,
-    create_alert,
-    get_parent_by_conversation,
-    get_recent_alert_for_conversation,
 )
-from ain.notifications.n8n import send_alert_to_n8n
+
 
 
 router = APIRouter(
@@ -61,52 +58,14 @@ def analyze(
 
         # 4. Create alert if HIGH risk
         if should_alert:
-            # تأكد هل في Alert سابق لنفس المحادثة خلال آخر
-            # ALERT_COOLDOWN_MINUTES دقايق. لازم نتأكد قبل ما
-            # ننشئ الـ Alert الحالي، وإلا رح يلاقي نفسه.
-            recent_alert = get_recent_alert_for_conversation(
-                db=db,
-                conversation_id=request.conversation_id,
-                minutes=ALERT_COOLDOWN_MINUTES,
-            )
-            in_cooldown = recent_alert is not None
+            alert_service = AlertService(db=db)
 
-            # نخزّن الـ Alert دايمًا بالـ Database، حتى لو بفترة
-            # الـ Cooldown - بس ما نبعت Email/n8n إلا إذا خرجنا
-            # من فترة الانتظار.
-            alert = create_alert(
-                db=db,
+            alert_service.process_alert(
                 conversation_id=request.conversation_id,
                 message_id=message.id,
                 risk_score=risk_score,
                 severity=severity,
             )
-
-            if not in_cooldown:
-                # 5. Find parent from database
-                parent = get_parent_by_conversation(
-                    db=db,
-                    conversation_id=request.conversation_id,
-                )
-
-                if parent:
-                    # 6. Send alert to n8n
-                    n8n_data = {
-                        "alert_id": alert.id,
-                        "conversation_id": alert.conversation_id,
-                        "message_id": alert.message_id,
-                        "risk_score": alert.risk_score,
-                        "severity": alert.severity,
-                        "status": alert.status,
-                        "parent_email": parent.email,
-                        "parent_name": parent.name,
-                    }
-
-                    n8n_sent = send_alert_to_n8n(n8n_data)
-
-                    # 7. Update n8n status
-                    alert.n8n_sent = n8n_sent
-                    db.commit()
 
         # 8. Return API response
         return AnalyzeResponse(
