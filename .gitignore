@@ -1,0 +1,4 @@
+.env
+ain.db
+__pycache__/
+*.pyc
