@@ -7,7 +7,6 @@
 ![Model](https://img.shields.io/badge/Model-MARBERTv2-orange)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
 
-**🔗 [جرّب التطبيق مباشرة](https://ainhchild.streamlit.app/)**
 
 
 ## 🎯 الفكرة
