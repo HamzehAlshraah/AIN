@@ -9,7 +9,7 @@ def render_sidebar():
         # =============================================
 
         st.image(
-            "/workspaces/AIN/app/logo AIN.png",
+            "app/logo AIN.png",
             use_container_width=True,
         )
 
