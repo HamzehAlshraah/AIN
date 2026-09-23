@@ -67,6 +67,33 @@ class MessageResponse(BaseModel):
     risk_score: float
     severity: str
     created_at: datetime
+class MessageResponse(BaseModel):
+    id: int
+    conversation_id: str
+    text: str
+    platform: Optional[str] = None
+    risk_score: float
+    severity: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class FeedbackCreateRequest(BaseModel):
+    message: str
+    feedback_type: str = "suggestion"
+    name: Optional[str] = None
+    email: Optional[str] = None
+
+
+class FeedbackResponse(BaseModel):
+    id: int
+    message: str
+    feedback_type: str
+    name: Optional[str] = None
+    email: Optional[str] = None
+    created_at: datetime
 
     class Config:
         from_attributes = True

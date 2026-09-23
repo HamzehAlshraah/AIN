@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 
+from ain.database.models import Message
 from ain.database.repository import (
     create_alert,
     get_parent_by_conversation,
@@ -66,16 +67,25 @@ class AlertService:
             )
 
             if parent:
+                # Get the original message from the database
+                message = (
+                    self.db.query(Message)
+                    .filter(Message.id == message_id)
+                    .first()
+                )
+
                 n8n_data = {
-                    "alert_id": alert.id,
-                    "conversation_id": alert.conversation_id,
-                    "message_id": alert.message_id,
-                    "risk_score": alert.risk_score,
-                    "severity": alert.severity,
-                    "status": alert.status,
-                    "parent_email": parent.email,
-                    "parent_name": parent.name,
-                }
+                        "alert_id": alert.id,
+                        "conversation_id": alert.conversation_id,
+                        "message_id": alert.message_id,
+                        "message_text": message.text if message else "",
+                        "risk_score": alert.risk_score,
+                        "severity": alert.severity,
+                        "status": alert.status,
+                        "parent_email": parent.email,
+                        "parent_name": parent.name,
+                        "created_at": alert.created_at.isoformat() if alert.created_at else "",
+                    }
 
                 alert.n8n_sent = send_alert_to_n8n(n8n_data)
 

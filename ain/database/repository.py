@@ -126,9 +126,11 @@ def create_feedback(
     message: str,
     feedback_type: str = "suggestion",
     name: str | None = None,
+    email: str | None = None,
 ) -> Feedback:
     feedback = Feedback(
         name=name,
+        email=email,
         message=message,
         feedback_type=feedback_type,
     )
