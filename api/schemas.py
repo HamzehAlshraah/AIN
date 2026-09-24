@@ -59,14 +59,7 @@ class AlertUpdateRequest(BaseModel):
     status: str
 
 
-class MessageResponse(BaseModel):
-    id: int
-    conversation_id: str
-    text: str
-    platform: Optional[str] = None
-    risk_score: float
-    severity: str
-    created_at: datetime
+
 class MessageResponse(BaseModel):
     id: int
     conversation_id: str

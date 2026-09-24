@@ -67,7 +67,7 @@ def analyze(
                 severity=severity,
             )
 
-        # 8. Return API response
+        # 5. Return API response
         return AnalyzeResponse(
             message_id=str(message.id),
             conversation_id=request.conversation_id,
