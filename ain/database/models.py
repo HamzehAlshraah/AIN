@@ -146,12 +146,6 @@ class Feedback(Base):
         autoincrement=True,
     )
 
-    conversation_id: Mapped[str] = mapped_column(
-        String(100),
-        nullable=False,
-        index=True,
-    )
-
     name: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True,
@@ -161,7 +155,7 @@ class Feedback(Base):
         String(255),
         nullable=True,
     )
-
+    
     message: Mapped[str] = mapped_column(
         Text,
         nullable=False,
