@@ -86,14 +86,6 @@ def get_cached_alerts():
     return client.get_alerts()
 
 
-@st.cache_data(ttl=5)
-def get_cached_risk_history():
-
-    client = APIClient()
-
-    return client.get_risk_history()
-
-
 @st.cache_data(ttl=60)
 def get_cached_conversation_messages(
     conversation_id,
@@ -320,20 +312,7 @@ st.markdown(
 
 
 # =====================================================
-# جلب Risk History من API مرة واحدة
-# =====================================================
-
-try:
-
-    risk_history = get_cached_risk_history()
-
-except Exception:
-
-    risk_history = []
-
-
-# =====================================================
-# تجهيز الرسائل
+# تجهيز الرسائل من المحادثات
 # =====================================================
 
 all_messages = []
@@ -341,44 +320,66 @@ all_messages = []
 seen_messages = set()
 
 
-for message in risk_history:
+for alert in alerts:
 
-    message_id = message.get(
-        "id"
+    conversation_id = alert.get(
+        "conversation_id"
     )
 
-    if message_id in seen_messages:
+    if not conversation_id:
         continue
 
-    seen_messages.add(
-        message_id
-    )
+    try:
 
-    all_messages.append(
-        {
-            "id": message_id,
+        conversation_messages = (
+            get_cached_conversation_messages(
+                conversation_id
+            )
+        )
 
-            "conversation_id": message.get(
-                "conversation_id",
-                "",
-            ),
+    except Exception:
 
-            "risk_score": message.get(
-                "risk_score",
-                0,
-            ),
+        continue
 
-            "created_at": message.get(
-                "created_at",
-                "",
-            ),
 
-            "severity": message.get(
-                "severity",
-                "UNKNOWN",
-            ),
-        }
-    )
+    for message in conversation_messages:
+
+        message_id = message.get(
+            "id"
+        )
+
+        if message_id in seen_messages:
+            continue
+
+        seen_messages.add(
+            message_id
+        )
+
+        all_messages.append(
+            {
+                "id": message_id,
+
+                "conversation_id": message.get(
+                    "conversation_id",
+                    conversation_id,
+                ),
+
+                "risk_score": message.get(
+                    "risk_score",
+                    0,
+                ),
+
+                "created_at": message.get(
+                    "created_at",
+                    "",
+                ),
+
+                "severity": message.get(
+                    "severity",
+                    "UNKNOWN",
+                ),
+            }
+        )
 
 
 # =====================================================
@@ -416,6 +417,7 @@ for index, message in enumerate(
     chart_rows.append(
         {
             "الرسالة": index,
+
             "مستوى الخطورة (%)":
                 risk_score * 100,
         }
@@ -904,18 +906,6 @@ def render_alert_details():
     # =================================================
     # لا حاجة لـ GET /alerts/{id}
     # =================================================
-    #
-    # selected_alert يحتوي أصلاً على:
-    # id
-    # conversation_id
-    # message_id
-    # risk_score
-    # severity
-    # status
-    # n8n_sent
-    # created_at
-    #
-    # =================================================
 
     alert_details = selected_alert
 
@@ -1176,7 +1166,6 @@ def render_alert_details():
                     "NEW",
                 )
 
-                # تحديث alerts فقط
                 get_cached_alerts.clear()
 
                 st.toast(
@@ -1184,7 +1173,6 @@ def render_alert_details():
                     icon="🔄",
                 )
 
-                # إعادة تشغيل الـ Fragment فقط
                 st.rerun(
                     scope="fragment"
                 )
@@ -1217,7 +1205,6 @@ def render_alert_details():
                     "REVIEWED",
                 )
 
-                # تحديث alerts فقط
                 get_cached_alerts.clear()
 
                 st.toast(
@@ -1225,7 +1212,6 @@ def render_alert_details():
                     icon="✅",
                 )
 
-                # إعادة تشغيل الـ Fragment فقط
                 st.rerun(
                     scope="fragment"
                 )
@@ -1258,7 +1244,6 @@ def render_alert_details():
                     "DISMISSED",
                 )
 
-                # تحديث alerts فقط
                 get_cached_alerts.clear()
 
                 st.toast(
@@ -1266,7 +1251,6 @@ def render_alert_details():
                     icon="🚫",
                 )
 
-                # إعادة تشغيل الـ Fragment فقط
                 st.rerun(
                     scope="fragment"
                 )
