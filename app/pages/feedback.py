@@ -1,8 +1,10 @@
-import time
 import requests
 import streamlit as st
 
-from app.services.api_client import APIClient
+from app.services.api_client import (
+    APIClient,
+    get_or_create_conversation_id,
+)
 from app.components.sidebar import render_sidebar
 
 
@@ -13,6 +15,14 @@ st.set_page_config(
 )
 
 render_sidebar()
+
+# =========================
+# Conversation ID
+# =========================
+
+conversation_id = get_or_create_conversation_id()
+
+st.caption(f"معرّف الجلسة: `{conversation_id}`")
 
 st.title("💡 الاقتراحات والملاحظات")
 
@@ -68,48 +78,6 @@ st.divider()
 
 
 # =========================
-# Cooldown
-# =========================
-
-COOLDOWN_SECONDS = 10 * 60  # 10 minutes
-
-last_feedback_time = st.session_state.get(
-    "last_feedback_time",
-    0,
-)
-
-current_time = time.time()
-
-cooldown_remaining = max(
-    0,
-    COOLDOWN_SECONDS
-    - (current_time - last_feedback_time),
-)
-
-
-# =========================
-# Cooldown display
-# =========================
-
-button_disabled = cooldown_remaining > 0
-
-if button_disabled:
-
-    remaining_minutes = int(
-        cooldown_remaining // 60
-    )
-
-    remaining_seconds = int(
-        cooldown_remaining % 60
-    )
-
-    st.info(
-        f"⏳ يمكنك إرسال رسالة جديدة بعد "
-        f"{remaining_minutes}:{remaining_seconds:02d}"
-    )
-
-
-# =========================
 # Send button
 # =========================
 
@@ -117,7 +85,6 @@ if st.button(
     "إرسال",
     type="primary",
     use_container_width=True,
-    disabled=button_disabled,
 ):
 
     if not message.strip():
@@ -135,10 +102,9 @@ if st.button(
         }
 
         payload = {
+            "conversation_id": conversation_id,
             "message": message.strip(),
-            "feedback_type": type_mapping[
-                feedback_type
-            ],
+            "feedback_type": type_mapping[feedback_type],
             "name": name.strip() or None,
             "email": email.strip() or None,
         }
@@ -155,14 +121,6 @@ if st.button(
 
             if response:
 
-                # =================================
-                # Start 10-minute cooldown
-                # =================================
-
-                st.session_state[
-                    "last_feedback_time"
-                ] = time.time()
-
                 st.success(
                     "✅ تم إرسال رسالتك بنجاح، "
                     "شكرًا لمساهمتك."
@@ -170,12 +128,11 @@ if st.button(
 
                 st.rerun()
 
-
         except requests.HTTPError as e:
 
-            # =================================
+            # =========================
             # Backend cooldown = HTTP 429
-            # =================================
+            # =========================
 
             if (
                 e.response is not None
@@ -208,7 +165,6 @@ if st.button(
                     "حاول مرة أخرى."
                 )
 
-
         except requests.RequestException:
 
             st.error(
@@ -216,11 +172,9 @@ if st.button(
                 "حاول مرة أخرى."
             )
 
-
         except Exception:
 
             st.error(
                 "❌ حدث خطأ غير متوقع. "
                 "حاول مرة أخرى."
             )
-

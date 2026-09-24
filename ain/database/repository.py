@@ -123,12 +123,14 @@ def get_messages_by_conversation(
 
 def create_feedback(
     db: Session,
+    conversation_id: str,
     message: str,
     feedback_type: str = "suggestion",
     name: str | None = None,
     email: str | None = None,
 ) -> Feedback:
     feedback = Feedback(
+        conversation_id=conversation_id,
         name=name,
         email=email,
         message=message,
@@ -140,7 +142,6 @@ def create_feedback(
     db.refresh(feedback)
 
     return feedback
-
 
 def get_parent_by_conversation(
     db: Session,

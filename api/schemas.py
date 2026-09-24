@@ -74,6 +74,7 @@ class MessageResponse(BaseModel):
 
 
 class FeedbackCreateRequest(BaseModel):
+    conversation_id: str
     message: str
     feedback_type: str = "suggestion"
     name: Optional[str] = None
@@ -82,6 +83,7 @@ class FeedbackCreateRequest(BaseModel):
 
 class FeedbackResponse(BaseModel):
     id: int
+    conversation_id: str
     message: str
     feedback_type: str
     name: Optional[str] = None
