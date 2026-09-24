@@ -1,10 +1,11 @@
 import streamlit as st
-
 import pandas as pd
+
 from components.sidebar import render_sidebar
+from app.services.api_client import APIClient
+
 
 render_sidebar()
-from app.services.api_client import APIClient
 
 
 # =====================================================
@@ -23,6 +24,7 @@ st.set_page_config(
 # =====================================================
 
 def translate_severity(severity):
+
     translations = {
         "HIGH": "مرتفع",
         "MEDIUM": "متوسط",
@@ -37,6 +39,7 @@ def translate_severity(severity):
 
 
 def translate_status(status):
+
     translations = {
         "NEW": "جديد",
         "REVIEWED": "تمت المراجعة",
@@ -50,6 +53,7 @@ def translate_status(status):
 
 
 def risk_label(risk_score):
+
     if risk_score >= 0.75:
         return "مرتفع"
 
@@ -60,6 +64,46 @@ def risk_label(risk_score):
         return "منخفض"
 
     return "آمن"
+
+
+# =====================================================
+# Cache
+# =====================================================
+
+@st.cache_data(ttl=5)
+def get_cached_dashboard_summary():
+
+    client = APIClient()
+
+    return client.get_dashboard_summary()
+
+
+@st.cache_data(ttl=5)
+def get_cached_alerts():
+
+    client = APIClient()
+
+    return client.get_alerts()
+
+
+@st.cache_data(ttl=5)
+def get_cached_risk_history():
+
+    client = APIClient()
+
+    return client.get_risk_history()
+
+
+@st.cache_data(ttl=60)
+def get_cached_conversation_messages(
+    conversation_id,
+):
+
+    client = APIClient()
+
+    return client.get_conversation_messages(
+        conversation_id
+    )
 
 
 # =====================================================
@@ -131,7 +175,7 @@ st.markdown(
 
 
 # =====================================================
-# الاتصال بالـ API
+# API Client
 # =====================================================
 
 client = APIClient()
@@ -160,10 +204,15 @@ st.markdown(
 # =====================================================
 
 try:
-    summary = client.get_dashboard_summary()
+
+    summary = get_cached_dashboard_summary()
 
 except Exception as exc:
-    st.error(f"تعذر الاتصال بخادم AIN: {exc}")
+
+    st.error(
+        f"تعذر الاتصال بخادم AIN: {exc}"
+    )
+
     st.stop()
 
 
@@ -171,9 +220,20 @@ except Exception as exc:
 # استخراج بيانات الملخص
 # =====================================================
 
-total_messages = summary.get("messages_analyzed", 0)
-risk_events = summary.get("risk_events", 0)
-high_risk_events = summary.get("high_risk_events", 0)
+total_messages = summary.get(
+    "messages_analyzed",
+    0,
+)
+
+risk_events = summary.get(
+    "risk_events",
+    0,
+)
+
+high_risk_events = summary.get(
+    "high_risk_events",
+    0,
+)
 
 highest_risk = summary.get(
     "highest_risk_score",
@@ -181,9 +241,12 @@ highest_risk = summary.get(
 )
 
 if highest_risk is None:
+
     highest_risk = 0
 
-highest_risk = float(highest_risk)
+highest_risk = float(
+    highest_risk
+)
 
 
 # =====================================================
@@ -194,6 +257,7 @@ col1, col2, col3, col4 = st.columns(4)
 
 
 with col1:
+
     st.metric(
         label="الرسائل التي تم تحليلها",
         value=total_messages,
@@ -201,6 +265,7 @@ with col1:
 
 
 with col2:
+
     st.metric(
         label="أحداث الخطورة",
         value=risk_events,
@@ -208,6 +273,7 @@ with col2:
 
 
 with col3:
+
     st.metric(
         label="تنبيهات الخطورة العالية",
         value=high_risk_events,
@@ -215,20 +281,27 @@ with col3:
 
 
 with col4:
+
     st.metric(
         label="أعلى مستوى للخطورة",
         value=f"{highest_risk * 100:.1f}%",
     )
-    
+
+
 # =====================================================
 # جلب التنبيهات
 # =====================================================
 
 try:
-    alerts = client.get_alerts()
+
+    alerts = get_cached_alerts()
 
 except Exception as exc:
-    st.error(f"تعذر تحميل التنبيهات: {exc}")
+
+    st.error(
+        f"تعذر تحميل التنبيهات: {exc}"
+    )
+
     alerts = []
 
 
@@ -247,55 +320,65 @@ st.markdown(
 
 
 # =====================================================
-# جلب جميع الرسائل من جميع المحادثات المرتبطة بالتنبيهات
+# جلب Risk History من API مرة واحدة
+# =====================================================
+
+try:
+
+    risk_history = get_cached_risk_history()
+
+except Exception:
+
+    risk_history = []
+
+
+# =====================================================
+# تجهيز الرسائل
 # =====================================================
 
 all_messages = []
+
 seen_messages = set()
 
 
-for alert in alerts:
+for message in risk_history:
 
-    conversation_id = alert.get("conversation_id")
+    message_id = message.get(
+        "id"
+    )
 
-    if not conversation_id:
+    if message_id in seen_messages:
         continue
 
-    try:
-        conversation_messages = client.get_conversation_messages(
-            conversation_id
-        )
+    seen_messages.add(
+        message_id
+    )
 
-    except Exception:
-        continue
+    all_messages.append(
+        {
+            "id": message_id,
 
-    for message in conversation_messages:
+            "conversation_id": message.get(
+                "conversation_id",
+                "",
+            ),
 
-        message_id = message.get("id")
+            "risk_score": message.get(
+                "risk_score",
+                0,
+            ),
 
-        if message_id in seen_messages:
-            continue
+            "created_at": message.get(
+                "created_at",
+                "",
+            ),
 
-        seen_messages.add(message_id)
-
-        all_messages.append(
-            {
-                "id": message_id,
-                "conversation_id": conversation_id,
-                "risk_score": message.get(
-                    "risk_score",
-                    0,
-                ),
-                "created_at": message.get(
-                    "created_at",
-                    "",
-                ),
-                "severity": message.get(
-                    "severity",
-                    "UNKNOWN",
-                ),
-            }
-        )
+            "severity": message.get(
+                "severity",
+                "UNKNOWN",
+            ),
+        }
+    )
 
 
 # =====================================================
@@ -303,7 +386,8 @@ for alert in alerts:
 # =====================================================
 
 all_messages.sort(
-    key=lambda message: message.get(
+    key=lambda message:
+    message.get(
         "created_at",
         "",
     )
@@ -332,12 +416,15 @@ for index, message in enumerate(
     chart_rows.append(
         {
             "الرسالة": index,
-            "مستوى الخطورة (%)": risk_score * 100,
+            "مستوى الخطورة (%)":
+                risk_score * 100,
         }
     )
 
 
-risk_df = pd.DataFrame(chart_rows)
+risk_df = pd.DataFrame(
+    chart_rows
+)
 
 
 # =====================================================
@@ -347,7 +434,9 @@ risk_df = pd.DataFrame(chart_rows)
 if not risk_df.empty:
 
     st.line_chart(
-        risk_df.set_index("الرسالة"),
+        risk_df.set_index(
+            "الرسالة"
+        ),
         y="مستوى الخطورة (%)",
         width="stretch",
     )
@@ -444,12 +533,17 @@ if all_messages:
         )
     )
 
-    latest_risk = latest_ratio * 100
+    latest_risk = (
+        latest_ratio * 100
+    )
 
 else:
 
     latest_ratio = highest_risk
-    latest_risk = highest_risk * 100
+
+    latest_risk = (
+        highest_risk * 100
+    )
 
 
 # =====================================================
@@ -459,31 +553,46 @@ else:
 if latest_ratio >= 0.75:
 
     risk_title = "🔴 مستوى الخطورة: مرتفع"
-    risk_description = "تم اكتشاف مستوى خطورة مرتفع."
+    risk_description = (
+        "تم اكتشاف مستوى خطورة مرتفع."
+    )
+
     risk_color = "#b91c1c"
     risk_bg = "#fef2f2"
     risk_border = "#fecaca"
 
+
 elif latest_ratio >= 0.50:
 
     risk_title = "🟠 مستوى الخطورة: متوسط"
-    risk_description = "تم اكتشاف مستوى خطورة متوسط."
+    risk_description = (
+        "تم اكتشاف مستوى خطورة متوسط."
+    )
+
     risk_color = "#c2410c"
     risk_bg = "#fff7ed"
     risk_border = "#fed7aa"
 
+
 elif latest_ratio >= 0.25:
 
     risk_title = "🟡 مستوى الخطورة: منخفض"
-    risk_description = "تم اكتشاف مستوى خطورة منخفض."
+    risk_description = (
+        "تم اكتشاف مستوى خطورة منخفض."
+    )
+
     risk_color = "#a16207"
     risk_bg = "#fefce8"
     risk_border = "#fde68a"
 
+
 else:
 
     risk_title = "🟢 مستوى الخطورة: آمن"
-    risk_description = "لم يتم اكتشاف مستوى خطورة مرتفع."
+    risk_description = (
+        "لم يتم اكتشاف مستوى خطورة مرتفع."
+    )
+
     risk_color = "#15803d"
     risk_bg = "#f0fdf4"
     risk_border = "#bbf7d0"
@@ -567,35 +676,43 @@ for alert in alerts:
                 "conversation_id",
                 "-",
             ),
-            "مستوى الخطورة": translate_severity(
-                alert.get(
-                    "severity",
-                    "-",
-                )
-            ),
-            "مستوى الخطورة (%)": (
-                float(
+
+            "مستوى الخطورة":
+                translate_severity(
                     alert.get(
-                        "risk_score",
-                        0,
+                        "severity",
+                        "-",
                     )
-                )
-                * 100
-            ),
-            "الحالة": translate_status(
-                alert.get(
-                    "status",
-                    "-",
-                )
-            ),
-            "تم إرسال البريد": (
-                "نعم"
-                if alert.get(
-                    "n8n_sent",
-                    False,
-                )
-                else "لا"
-            ),
+                ),
+
+            "مستوى الخطورة (%)":
+                (
+                    float(
+                        alert.get(
+                            "risk_score",
+                            0,
+                        )
+                    )
+                    * 100
+                ),
+
+            "الحالة":
+                translate_status(
+                    alert.get(
+                        "status",
+                        "-",
+                    )
+                ),
+
+            "تم إرسال البريد":
+                (
+                    "نعم"
+                    if alert.get(
+                        "n8n_sent",
+                        False,
+                    )
+                    else "لا"
+                ),
         }
     )
 
@@ -615,7 +732,8 @@ if recent_alert_rows:
     ] = recent_alert_df[
         "مستوى الخطورة (%)"
     ].map(
-        lambda value: f"{value:.1f}%"
+        lambda value:
+        f"{value:.1f}%"
     )
 
     st.dataframe(
@@ -643,28 +761,36 @@ if alerts:
 
         additional_rows = []
 
+
         for alert in alerts:
 
             additional_rows.append(
                 {
-                    "رقم التنبيه": alert.get(
-                        "id",
-                        "-",
-                    ),
-                    "رقم الرسالة": alert.get(
-                        "message_id",
-                        "-",
-                    ),
-                    "تاريخ الإنشاء": alert.get(
-                        "created_at",
-                        "-",
-                    ),
+                    "رقم التنبيه":
+                        alert.get(
+                            "id",
+                            "-",
+                        ),
+
+                    "رقم الرسالة":
+                        alert.get(
+                            "message_id",
+                            "-",
+                        ),
+
+                    "تاريخ الإنشاء":
+                        alert.get(
+                            "created_at",
+                            "-",
+                        ),
                 }
             )
+
 
         additional_df = pd.DataFrame(
             additional_rows
         )
+
 
         st.dataframe(
             additional_df,
@@ -687,9 +813,35 @@ st.markdown(
 )
 
 
-if alerts:
+# =====================================================
+# Alert Details Fragment
+# =====================================================
+
+@st.fragment
+def render_alert_details():
+
+    # مهم:
+    # يتم جلب alerts داخل الـ fragment نفسه
+    # حتى بعد clear() يتم تحميل البيانات الجديدة
+
+    alerts = get_cached_alerts()
+
+
+    if not alerts:
+
+        st.info(
+            "لا توجد تنبيهات لعرض تفاصيلها."
+        )
+
+        return
+
+
+    # =================================================
+    # خيارات التنبيهات
+    # =================================================
 
     alert_options = []
+
 
     for alert in alerts:
 
@@ -704,27 +856,40 @@ if alerts:
             )
         )
 
-        risk = float(
-            alert.get(
-                "risk_score",
-                0,
+        risk = (
+            float(
+                alert.get(
+                    "risk_score",
+                    0,
+                )
             )
-        ) * 100
-
-        alert_options.append(
-            f"التنبيه #{alert_id} — {severity} — {risk:.1f}%"
+            * 100
         )
 
+        alert_options.append(
+            f"التنبيه #{alert_id} — "
+            f"{severity} — "
+            f"{risk:.1f}%"
+        )
+
+
+    # =================================================
+    # اختيار التنبيه
+    # =================================================
 
     selected_alert_label = st.selectbox(
         "اختر التنبيه",
         alert_options,
+        key="dashboard_selected_alert",
     )
 
 
-    selected_index = alert_options.index(
-        selected_alert_label
+    selected_index = (
+        alert_options.index(
+            selected_alert_label
+        )
     )
+
 
     selected_alert = alerts[
         selected_index
@@ -737,30 +902,44 @@ if alerts:
 
 
     # =================================================
-    # جلب التفاصيل الكاملة للتنبيه
+    # لا حاجة لـ GET /alerts/{id}
+    # =================================================
+    #
+    # selected_alert يحتوي أصلاً على:
+    # id
+    # conversation_id
+    # message_id
+    # risk_score
+    # severity
+    # status
+    # n8n_sent
+    # created_at
+    #
     # =================================================
 
-    try:
-
-        alert_details = client.get_alert(
-            alert_id
-        )
-
-    except Exception:
-
-        alert_details = selected_alert
+    alert_details = selected_alert
 
 
-    detail_col1, detail_col2, detail_col3 = st.columns(3)
+    # =================================================
+    # Metrics
+    # =================================================
 
-    
+    detail_col1, detail_col2, detail_col3 = (
+        st.columns(3)
+    )
+
+
     with detail_col1:
-        risk_value = float(
-            alert_details.get(
-                "risk_score",
-                0,
+
+        risk_value = (
+            float(
+                alert_details.get(
+                    "risk_score",
+                    0,
+                )
             )
-        ) * 100
+            * 100
+        )
 
         st.metric(
             "مستوى الخطورة",
@@ -876,13 +1055,19 @@ if alerts:
     )
 
 
-    conversation_id = alert_details.get(
-        "conversation_id"
+    conversation_id = (
+        alert_details.get(
+            "conversation_id"
+        )
     )
 
-    message_id = alert_details.get(
-        "message_id"
+
+    message_id = (
+        alert_details.get(
+            "message_id"
+        )
     )
+
 
     triggering_message = None
 
@@ -892,19 +1077,25 @@ if alerts:
         try:
 
             conversation_messages = (
-                client.get_conversation_messages(
+                get_cached_conversation_messages(
                     conversation_id
                 )
             )
 
+
             for message in conversation_messages:
 
-                if message.get("id") == message_id:
+                if message.get(
+                    "id"
+                ) == message_id:
 
                     triggering_message = message
+
                     break
 
+
         except Exception:
+
             triggering_message = None
 
 
@@ -922,7 +1113,10 @@ if alerts:
                 margin-bottom: 20px;
                 line-height: 1.8;
             ">
-                {triggering_message.get("text", "لا توجد رسالة")}
+                {triggering_message.get(
+                    "text",
+                    "لا توجد رسالة"
+                )}
             </div>
             """,
             unsafe_allow_html=True,
@@ -936,7 +1130,7 @@ if alerts:
 
 
     # =================================================
-    # أزرار تحديث حالة التنبيه
+    # إدارة التنبيه
     # =================================================
 
     st.markdown(
@@ -956,28 +1150,44 @@ if alerts:
     )
 
 
-    action_col1, action_col2, action_col3 = st.columns(3)
+    action_col1, action_col2, action_col3 = (
+        st.columns(3)
+    )
 
+
+    # =================================================
+    # NEW
+    # =================================================
 
     with action_col1:
 
         if st.button(
             "🆕 وضع كتنبيه جديد",
             width="stretch",
+            key=f"new_alert_{alert_id}",
         ):
 
             try:
+
+                client = APIClient()
 
                 client.update_alert(
                     alert_id,
                     "NEW",
                 )
 
-                st.success(
-                    "تم تحديث حالة التنبيه."
+                # تحديث alerts فقط
+                get_cached_alerts.clear()
+
+                st.toast(
+                    "تم تحديث حالة التنبيه.",
+                    icon="🔄",
                 )
 
-                st.rerun()
+                # إعادة تشغيل الـ Fragment فقط
+                st.rerun(
+                    scope="fragment"
+                )
 
             except Exception as exc:
 
@@ -985,26 +1195,40 @@ if alerts:
                     f"حدث خطأ: {exc}"
                 )
 
+
+    # =================================================
+    # REVIEWED
+    # =================================================
 
     with action_col2:
 
         if st.button(
             "✅ تمت المراجعة",
             width="stretch",
+            key=f"reviewed_alert_{alert_id}",
         ):
 
             try:
+
+                client = APIClient()
 
                 client.update_alert(
                     alert_id,
                     "REVIEWED",
                 )
 
-                st.success(
-                    "تمت مراجعة التنبيه."
+                # تحديث alerts فقط
+                get_cached_alerts.clear()
+
+                st.toast(
+                    "تمت مراجعة التنبيه.",
+                    icon="✅",
                 )
 
-                st.rerun()
+                # إعادة تشغيل الـ Fragment فقط
+                st.rerun(
+                    scope="fragment"
+                )
 
             except Exception as exc:
 
@@ -1012,26 +1236,40 @@ if alerts:
                     f"حدث خطأ: {exc}"
                 )
 
+
+    # =================================================
+    # DISMISSED
+    # =================================================
 
     with action_col3:
 
         if st.button(
             "🚫 تجاهل التنبيه",
             width="stretch",
+            key=f"dismissed_alert_{alert_id}",
         ):
 
             try:
+
+                client = APIClient()
 
                 client.update_alert(
                     alert_id,
                     "DISMISSED",
                 )
 
-                st.success(
-                    "تم تجاهل التنبيه."
+                # تحديث alerts فقط
+                get_cached_alerts.clear()
+
+                st.toast(
+                    "تم تجاهل التنبيه.",
+                    icon="🚫",
                 )
 
-                st.rerun()
+                # إعادة تشغيل الـ Fragment فقط
+                st.rerun(
+                    scope="fragment"
+                )
 
             except Exception as exc:
 
@@ -1040,8 +1278,8 @@ if alerts:
                 )
 
 
-else:
+# =====================================================
+# تشغيل Fragment
+# =====================================================
 
-    st.info(
-        "لا توجد تنبيهات لعرض تفاصيلها."
-    )
+render_alert_details()
