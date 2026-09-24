@@ -43,27 +43,4 @@ def render_sidebar():
         # Navigation
         # =============================================
 
-        st.page_link(
-            "app/Home.py",
-            label="🏠 الرئيسية",
-        )
-
-        st.page_link(
-            "app/pages/Dashboard.py",
-            label="📊 لوحة التحكم",
-        )
-
-        st.page_link(
-            "app/pages/live_demo.py",
-            label="🧪 التجربة المباشرة",
-        )
-
-        st.page_link(
-            "app/pages/parent_setup.py",
-            label="👨‍👩‍👧 إعداد ولي الأمر",
-        )
-
-        st.page_link(
-            "app/pages/feedback.py",
-            label="💡 الاقتراحات والملاحظات",
-        )
+        
