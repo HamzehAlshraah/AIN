@@ -29,7 +29,6 @@ class APIClient:
         )
 
         response.raise_for_status()
-
         return response.json()
 
     # =========================
@@ -37,9 +36,7 @@ class APIClient:
     # =========================
 
     def get_or_create_conversation_id(self) -> str:
-
         if "conversation_id" not in st.session_state:
-
             st.session_state["conversation_id"] = (
                 f"streamlit-{uuid.uuid4().hex[:8]}"
             )
@@ -56,12 +53,8 @@ class APIClient:
         conversation_id: str | None = None,
         platform: str | None = None,
     ):
-
         if conversation_id is None:
-
-            conversation_id = (
-                self.get_or_create_conversation_id()
-            )
+            conversation_id = self.get_or_create_conversation_id()
 
         payload = {
             "text": text,
@@ -85,7 +78,6 @@ class APIClient:
         email: str,
         name: str | None = None,
     ):
-
         payload = {
             "conversation_id": conversation_id,
             "name": name,
@@ -103,7 +95,6 @@ class APIClient:
     # =========================
 
     def get_dashboard_summary(self):
-
         return self._request(
             "GET",
             "/api/v1/dashboard/summary",
@@ -114,17 +105,12 @@ class APIClient:
     # =========================
 
     def get_alerts(self):
-
         return self._request(
             "GET",
             "/api/v1/alerts",
         )
 
-    def get_alert(
-        self,
-        alert_id: int,
-    ):
-
+    def get_alert(self, alert_id: int):
         return self._request(
             "GET",
             f"/api/v1/alerts/{alert_id}",
@@ -135,7 +121,6 @@ class APIClient:
         alert_id: int,
         status: str,
     ):
-
         payload = {
             "status": status,
         }
@@ -147,17 +132,6 @@ class APIClient:
         )
 
     # =========================
-    # Risk History
-    # =========================
-
-    def get_risk_history(self):
-
-        return self._request(
-            "GET",
-            "/api/v1/dashboard/risk-history",
-        )
-
-    # =========================
     # Conversation Messages
     # =========================
 
@@ -165,7 +139,6 @@ class APIClient:
         self,
         conversation_id: str,
     ):
-
         return self._request(
             "GET",
             f"/api/v1/conversations/{conversation_id}/messages",
@@ -177,9 +150,7 @@ class APIClient:
 # =========================
 
 def get_or_create_conversation_id() -> str:
-
     client = APIClient()
-
     return client.get_or_create_conversation_id()
 
 
@@ -188,7 +159,6 @@ def analyze_message(
     conversation_id: str | None = None,
     platform: str | None = None,
 ):
-
     client = APIClient()
 
     return client.analyze_message(
@@ -203,7 +173,6 @@ def register_parent(
     email: str,
     name: str | None = None,
 ):
-
     client = APIClient()
 
     return client.register_parent(
