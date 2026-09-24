@@ -1,3 +1,4 @@
+from pathlib import Path
 import streamlit as st
 
 
@@ -8,10 +9,18 @@ def render_sidebar():
         # شعار AIN
         # =============================================
 
-        st.image(
-            "app/logo AIN.png",
-            use_container_width=True,
+        logo_path = (
+            Path(__file__).resolve().parent.parent
+            / "logo AIN.png"
         )
+
+        if logo_path.exists():
+            st.image(
+                str(logo_path),
+                use_container_width=True,
+            )
+        else:
+            st.warning("⚠️ لم يتم العثور على شعار AIN")
 
         st.markdown(
             """
@@ -21,10 +30,40 @@ def render_sidebar():
                 font-weight: 800;
                 margin-top: 5px;
                 margin-bottom: 15px;
-                direction: rtl;
             ">
-                نظام حماية الأطفال AIN
+                AIN
             </div>
             """,
             unsafe_allow_html=True,
+        )
+
+        st.divider()
+
+        # =============================================
+        # Navigation
+        # =============================================
+
+        st.page_link(
+            "app/Home.py",
+            label="🏠 الرئيسية",
+        )
+
+        st.page_link(
+            "app/pages/Dashboard.py",
+            label="📊 لوحة التحكم",
+        )
+
+        st.page_link(
+            "app/pages/live_demo.py",
+            label="🧪 التجربة المباشرة",
+        )
+
+        st.page_link(
+            "app/pages/parent_setup.py",
+            label="👨‍👩‍👧 إعداد ولي الأمر",
+        )
+
+        st.page_link(
+            "app/pages/feedback.py",
+            label="💡 الاقتراحات والملاحظات",
         )
