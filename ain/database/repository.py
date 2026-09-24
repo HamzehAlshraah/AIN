@@ -16,11 +16,13 @@ def create_message(
     text: str,
     risk_score: float,
     severity: str,
+    platform: str | None = None,
 ) -> Message:
 
     message = Message(
         conversation_id=conversation_id,
         text=text,
+        platform=platform,
         risk_score=risk_score,
         severity=severity,
     )
@@ -30,7 +32,6 @@ def create_message(
     db.refresh(message)
 
     return message
-
 
 def get_messages_by_conversation(
     db: Session,
@@ -105,14 +106,17 @@ def get_alerts(
 
 def update_alert_status(
     db: Session,
-    alert_id: int,
+    alert_id: int | Alert,
     status: str,
 ):
 
-    alert = db.get(
-        Alert,
-        alert_id,
-    )
+    if isinstance(alert_id, Alert):
+        alert = alert_id
+    else:
+        alert = db.get(
+            Alert,
+            alert_id,
+        )
 
     if alert is None:
         return None
@@ -121,7 +125,6 @@ def update_alert_status(
 
     if status == "REVIEWED":
         alert.reviewed_at = datetime.utcnow()
-
     else:
         alert.reviewed_at = None
 
@@ -134,13 +137,16 @@ def update_alert_status(
 def get_recent_alert_for_conversation(
     db: Session,
     conversation_id: str,
+    minutes: int = 5,
 ):
+    cutoff_time = datetime.utcnow() - timedelta(minutes=minutes)
 
     statement = (
         select(Alert)
         .where(
-            Alert.conversation_id
-            == conversation_id
+            Alert.conversation_id == conversation_id,
+            Alert.n8n_sent.is_(True),
+            Alert.created_at >= cutoff_time,
         )
         .order_by(
             Alert.created_at.desc()
