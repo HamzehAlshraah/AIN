@@ -1,4 +1,4 @@
-import time
+from datetime import datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
@@ -16,10 +16,6 @@ router = APIRouter(
 )
 
 
-# ============================================
-# Feedback Cooldown
-# ============================================
-
 COOLDOWN_SECONDS = 10 * 60  # 10 minutes
 
 
@@ -28,7 +24,6 @@ def submit_feedback(
     request: FeedbackCreateRequest,
     db: Session = Depends(get_db),
 ):
-
     # ========================================
     # Validate message
     # ========================================
@@ -40,39 +35,47 @@ def submit_feedback(
         )
 
     # ========================================
-    # Check cooldown
+    # Check cooldown for THIS conversation only
     # ========================================
+
+    cooldown_time = datetime.utcnow() - timedelta(
+        seconds=COOLDOWN_SECONDS
+    )
 
     latest_feedback = (
         db.query(Feedback)
+        .filter(
+            Feedback.conversation_id
+            == request.conversation_id,
+            Feedback.created_at >= cooldown_time,
+        )
         .order_by(Feedback.created_at.desc())
         .first()
     )
 
-    if latest_feedback and latest_feedback.created_at:
-
-        elapsed = (
-            time.time()
-            - latest_feedback.created_at.timestamp()
+    if latest_feedback:
+        remaining_seconds = int(
+            COOLDOWN_SECONDS
+            - (
+                datetime.utcnow()
+                - latest_feedback.created_at
+            ).total_seconds()
         )
 
-        if elapsed < COOLDOWN_SECONDS:
+        if remaining_seconds < 0:
+            remaining_seconds = 0
 
-            remaining = int(
-                COOLDOWN_SECONDS - elapsed
-            )
+        minutes = remaining_seconds // 60
+        seconds = remaining_seconds % 60
 
-            minutes = remaining // 60
-            seconds = remaining % 60
-
-            raise HTTPException(
-                status_code=429,
-                detail=(
-                    f"Please wait {minutes} minutes "
-                    f"and {seconds} seconds before "
-                    f"sending another feedback."
-                ),
-            )
+        raise HTTPException(
+            status_code=429,
+            detail=(
+                f"Please wait {minutes} minutes "
+                f"and {seconds} seconds before "
+                f"sending another feedback."
+            ),
+        )
 
     # ========================================
     # Create feedback
@@ -80,6 +83,7 @@ def submit_feedback(
 
     feedback = create_feedback(
         db=db,
+        conversation_id=request.conversation_id,
         message=request.message.strip(),
         feedback_type=request.feedback_type,
         name=request.name.strip()
@@ -96,6 +100,7 @@ def submit_feedback(
 
     feedback_data = {
         "feedback_id": feedback.id,
+        "conversation_id": feedback.conversation_id,
         "feedback_type": feedback.feedback_type,
         "message": feedback.message,
         "name": feedback.name or "",
@@ -114,3 +119,4 @@ def submit_feedback(
     send_feedback_to_n8n(feedback_data)
 
     return feedback
+
