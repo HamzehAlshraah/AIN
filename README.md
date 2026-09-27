@@ -1,227 +1,586 @@
 # 👁️ عين (AIN)
 
-نظام ذكاء اصطناعي لحماية الأطفال من الرسائل الخطرة، عبر تحليل المحادثات العربية في الوقت الفعلي وتنبيه الأهل عند رصد محتوى مقلق.
-
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ainhchild.streamlit.app/)
+[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ainchild.streamlit.app/)
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Model](https://img.shields.io/badge/Model-MARBERTv2-orange)
 ![API](https://img.shields.io/badge/API-FastAPI-009688)
+![Database](https://img.shields.io/badge/Database-Supabase%20%2F%20PostgreSQL-3ECF8E)
 
+> **AIN (عين)** هو نظام ذكاء اصطناعي يهدف إلى المساعدة في حماية الأطفال والمراهقين من المحتوى العربي الخطِر من خلال تحليل الرسائل، تقدير مستوى الخطورة، وتوليد تنبيهات لولي الأمر عند اكتشاف محتوى عالي الخطورة.
 
+## 🌐 تجربة النظام مباشرة
 
-## 🎯 الفكرة
+### 👁️ AIN | Streamlit
 
-يستخدم عين نموذج **MARBERTv2** (نموذج عربي متخصص مبني على بنية BERT) لتصنيف الرسائل النصية العربية إلى فئتين: **آمنة (Safe)** أو **خطرة (risky)** — بهدف كشف أنماط التنمر الإلكتروني وخطاب الكراهية والإساءة الموجهة للأطفال والمراهقين.
+يمكن تجربة الواجهة مباشرة من خلال:
 
-لا يكتفي النظام بالتصنيف؛ فهو يحوّل احتمالية الخطورة إلى **مستوى خطورة** (آمن / منخفض / متوسط / مرتفع)، ويحفظ كل رسالة محلّلة، وعند الوصول إلى المستوى المرتفع يُنشئ **تنبيهاً** ويرسله إلى بريد ولي الأمر عبر [n8n](https://n8n.io/).
+**[🚀 فتح تطبيق عين (AIN)](https://ainchild.streamlit.app/)**
 
-## ✨ المميزات
+---
 
-- تصنيف فوري للرسائل النصية العربية (فصيحة وعامية)
-- **واجهة API** مبنية بـ FastAPI (الإصدار 2.0.0) مع توثيق تفاعلي تلقائي على `/docs`
-- **محرك مخاطر (Risk Engine)** يحوّل درجة الخطورة إلى أربعة مستويات
-- **تنبيهات تلقائية للأهل** عبر البريد الإلكتروني باستخدام webhook في n8n
-- **فترة تهدئة (Cooldown)** لمدة 5 دقائق لكل محادثة لتجنّب إغراق ولي الأمر بالتنبيهات
-- **تجربة مباشرة** بواجهة محادثة تعرض مؤشر الخطورة لحظة بلحظة
-- **لوحة تحكم** لعرض الإحصائيات ومراجعة التنبيهات (جديد / تمت المراجعة / تم التجاهل)
-- **تسجيل ولي الأمر** وربط بريده الإلكتروني بالمحادثة
-- تخزين الرسائل والتنبيهات في قاعدة بيانات SQLite
+## 🎯 فكرة المشروع
 
-## ⚙️ كيف يعمل النظام
+يعتمد **AIN** على نموذج اللغة العربي **MARBERTv2** لتحليل الرسائل العربية وتصنيفها إلى:
 
-```
-رسالة  →  POST /api/v1/analyze  →  نموذج MARBERT  →  Risk Engine  →  حفظ في قاعدة البيانات
-                                                                          │
-                                                          مستوى الخطورة HIGH؟
-                                                                          │
-                                                       إنشاء تنبيه  →  n8n  →  بريد ولي الأمر
-```
+* 🟢 **Safe** — رسالة آمنة
+* 🔴 **Risky** — رسالة تحتوي على محتوى مقلق أو خطِر
 
-1. يرسل التطبيق نص الرسالة مع معرّف المحادثة (`conversation_id`) والمنصة.
-2. يحسب النموذج درجة الخطورة `risk_score` ودرجة الأمان `safe_score`.
-3. يحدّد محرك المخاطر مستوى الخطورة وما إذا كان يجب إصدار تنبيه.
-4. تُحفظ الرسالة، وإذا كان المستوى **HIGH** يُنشأ تنبيه.
-5. إذا كان ولي الأمر مسجّلاً للمحادثة وخارج فترة التهدئة، يُرسَل التنبيه إلى n8n لإيصاله بالبريد الإلكتروني.
+بعد التصنيف، يقوم النظام بتحويل درجة الخطورة إلى مستوى واضح يساعد في تحديد الإجراء المناسب.
 
-> التنبيهات تُحفظ دائماً في قاعدة البيانات، لكن فترة التهدئة لا تبدأ إلا بعد **نجاح** الإرسال إلى n8n.
+الهدف من النظام هو المساعدة في اكتشاف أنماط مثل:
+
+* التنمر الإلكتروني
+* الإساءة اللفظية
+* خطاب الكراهية
+* المحتوى العدائي أو المسيء
+* الرسائل التي قد تشكل خطرًا على الطفل أو المراهق
+
+---
+
+## ✨ أهم مميزات AIN
+
+### 🤖 تحليل الرسائل باستخدام الذكاء الاصطناعي
+
+يستخدم المشروع **MARBERTv2**، وهو نموذج متخصص في معالجة اللغة العربية، لتحليل محتوى الرسائل.
+
+### 📊 Risk Score
+
+كل رسالة تحصل على:
+
+* `risk_score`
+* `safe_score`
+* `label`
+* `severity`
+* `should_alert`
+
+وبذلك لا يكتفي النظام بقول إن الرسالة خطرة أو آمنة، بل يعطي **درجة ومستوى للخطورة**.
 
 ### 🚦 مستويات الخطورة
 
-| المستوى | نطاق `risk_score` | تنبيه للأهل |
-|---|---|---|
-| 🟢 SAFE (آمن) | أقل من 0.30 | لا |
-| 🟡 LOW (منخفض) | من 0.30 إلى أقل من 0.50 | لا |
-| 🟠 MEDIUM (متوسط) | من 0.50 إلى أقل من 0.75 | لا |
-| 🔴 HIGH (مرتفع) | 0.75 فأكثر | **نعم** |
+| المستوى   |   `risk_score` | الإجراء           |
+| --------- | -------------: | ----------------- |
+| 🟢 SAFE   |  أقل من `0.30` | لا يوجد تنبيه     |
+| 🟡 LOW    | `0.30 – <0.50` | مراقبة            |
+| 🟠 MEDIUM | `0.50 – <0.75` | مستوى خطورة متوسط |
+| 🔴 HIGH   |       `≥ 0.75` | إنشاء تنبيه       |
 
-## 🧠 الموديل
+---
 
-| | |
-|---|---|
-| **القاعدة** | [UBC-NLP/MARBERTv2](https://huggingface.co/UBC-NLP/MARBERTv2) |
-| **حجم بيانات التدريب** | ~22,000 رسالة عربية مصنّفة (تدريب 17,725 · تحقق 2,216 · اختبار 2,216) |
-| **الدقة (Accuracy)** | 91.3% على بيانات اختبار مستقلة |
-| **الاستدعاء (Recall) لفئة risky** | 95% |
-| **الموديل المدرَّب** | [HazmehAlshraah/marbert-risk-model](https://huggingface.co/HazmehAlshraah/marbert-risk-model) على Hugging Face |
+## 🚨 نظام التنبيهات
 
-**تقرير التصنيف على مجموعة الاختبار:**
+عند وصول الرسالة إلى مستوى **HIGH**، يقوم النظام بإنشاء Alert.
 
-| الفئة | Precision | Recall | F1 | العدد |
-|---|---|---|---|---|
-| Safe | 0.95 | 0.88 | 0.91 | 1,166 |
-| risky | 0.87 | 0.95 | 0.91 | 1,050 |
+إذا كان ولي الأمر مسجلاً، يتم إرسال بيانات التنبيه إلى **n8n** عبر Webhook، ليتم تنفيذ عملية الإشعار، مثل إرسال بريد إلكتروني إلى ولي الأمر.
 
-يُحمَّل النموذج تلقائياً من Hugging Face عند أول طلب تحليل ثم يُحفظ في الذاكرة، لذلك قد يكون أول طلب أبطأ من البقية.
-
-### 📚 مصادر البيانات
-
-| المصدر | الحجم | ملاحظات |
-|---|---|---|
-| [ArbCyD](https://www.kaggle.com/datasets/monarasheedalroqi/arbcyd-arabic-cyberbullying-dataset) — التنمر الإلكتروني العربي | ~10,000 | bullying / non-bullying |
-| Arabic Offensive Comment Detection | 4,000 | تعليقات من Twitter / Facebook / YouTube (ملف Excel داخل `Data/`) |
-| [Egyptian Arabic Hate Speech](https://huggingface.co/datasets/IbrahimAmin/egyptian-arabic-hate-speech) | 8,169 | عنصرية، تمييز جنسي، تمييز ديني، إساءة |
-
-جرى توحيد التسميات إلى فئتين فقط (`Safe` / `risky`) ودمج المصادر في الملف `Data/All_data.csv`.
-
-## 📁 هيكل المشروع
-
+```text
+Message
+   │
+   ▼
+MARBERTv2
+   │
+   ▼
+Risk Score
+   │
+   ▼
+Risk Engine
+   │
+   ├── SAFE / LOW / MEDIUM
+   │
+   └── HIGH
+         │
+         ▼
+       Alert
+         │
+         ▼
+        n8n
+         │
+         ▼
+ Parent Notification
 ```
+
+---
+
+## ⏱️ Feedback Cooldown
+
+يحتوي النظام أيضًا على نظام **Feedback Cooldown** لمنع إرسال عدد كبير من الملاحظات المتكررة خلال فترة زمنية قصيرة.
+
+يتم تطبيق فترة التهدئة على مستوى المستخدم وفق آلية التعريف المستخدمة في النظام، بدل الاعتماد على جلسة محادثة مؤقتة فقط.
+
+---
+
+## 👨‍👩‍👧 Parent Setup
+
+يوفر النظام صفحة مخصصة لتسجيل ولي الأمر.
+
+يمكن لولي الأمر إدخال:
+
+* البريد الإلكتروني
+* الاسم بشكل اختياري
+
+ثم يتم ربط بيانات ولي الأمر بالمحادثة/المستخدم وفق آلية النظام، حتى يتمكن النظام من إرسال التنبيهات عند اكتشاف حالات عالية الخطورة.
+
+---
+
+## 💬 Live Demo
+
+تتيح واجهة **Live Demo** تجربة النظام بشكل مباشر.
+
+يمكن إرسال رسالة عربية ومشاهدة نتيجة التحليل، بما في ذلك:
+
+```text
+Label
+Risk Score
+Safe Score
+Severity
+Alert Status
+```
+
+وهذا يسمح بعرض طريقة عمل نموذج الذكاء الاصطناعي بشكل تفاعلي.
+
+---
+
+## 📊 Dashboard
+
+يحتوي النظام على لوحة تحكم لمتابعة حالة النظام والرسائل والتنبيهات.
+
+يمكن من خلالها متابعة معلومات مثل:
+
+* عدد الرسائل التي تم تحليلها
+* عدد حالات الخطورة
+* الحالات عالية الخطورة
+* أعلى Risk Score
+* التنبيهات
+* حالة التنبيه
+
+كما تم تحسين طريقة جلب بيانات الـ Dashboard لتقليل عدد طلبات الـ API وتحسين الأداء.
+
+---
+
+## 🧠 النموذج المستخدم
+
+### MARBERTv2
+
+النموذج الأساسي:
+
+**UBC-NLP/MARBERTv2**
+
+وهو نموذج مبني لمعالجة اللغة العربية ويُستخدم في المشروع لتحليل وتصنيف الرسائل.
+
+النموذج المدرّب للمشروع:
+
+**HazmehAlshraah/marbert-risk-model**
+
+ويتم تحميل النموذج عند الحاجة واستخدامه لتحليل الرسائل العربية.
+
+### نتائج النموذج
+
+| Metric         | Result |
+| -------------- | -----: |
+| Accuracy       |  91.3% |
+| Recall – Risky |    95% |
+| F1 – Safe      |   0.91 |
+| F1 – Risky     |   0.91 |
+
+> تم الحصول على هذه النتائج على مجموعة اختبار مستقلة، وهي تعكس أداء النموذج على بيانات التقييم المستخدمة في المشروع.
+
+---
+
+## 📚 البيانات المستخدمة
+
+تم دمج عدة مصادر للبيانات العربية بهدف تدريب نموذج قادر على التعامل مع أنواع مختلفة من المحتوى الخطِر.
+
+من المصادر المستخدمة:
+
+* **ArbCyD** — بيانات التنمر الإلكتروني العربي
+* **Arabic Offensive Comment Detection**
+* **Egyptian Arabic Hate Speech**
+
+تم توحيد التصنيفات إلى فئتين رئيسيتين:
+
+```text
+Safe
+Risky
+```
+
+ثم استخدام البيانات في عملية تدريب وتقييم النموذج.
+
+---
+
+# 🏗️ Architecture
+
+يتكون النظام من عدة أجزاء رئيسية:
+
+```text
+                    ┌──────────────────┐
+                    │    Streamlit     │
+                    │   User Interface │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │      FastAPI     │
+                    │       API        │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │    MARBERTv2     │
+                    │   NLP Model      │
+                    └────────┬─────────┘
+                             │
+                             ▼
+                    ┌──────────────────┐
+                    │   Risk Engine    │
+                    └────────┬─────────┘
+                             │
+                    ┌────────┴─────────┐
+                    ▼                  ▼
+             ┌─────────────┐    ┌─────────────┐
+             │  Database   │    │    Alert    │
+             │ PostgreSQL  │    │   System    │
+             └─────────────┘    └──────┬──────┘
+                                       │
+                                       ▼
+                                    ┌──────┐
+                                    │ n8n  │
+                                    └──┬───┘
+                                       │
+                                       ▼
+                                Parent Notification
+```
+
+---
+
+# 📁 Project Structure
+
+```text
 AIN/
-├── ain/                        # المنطق الأساسي للنظام
-│   ├── model/                  #   تحميل MARBERT والاستدلال (inference / loader)
-│   ├── Risk/Engine.py          #   محرك المخاطر: تحويل الدرجة إلى مستوى خطورة
-│   ├── alerts/                 #   قواعد التنبيه وخدمة التنبيهات وفترة التهدئة
-│   ├── database/               #   SQLAlchemy: النماذج والمستودع والاتصال
-│   └── notifications/n8n.py    #   إرسال التنبيهات إلى n8n
-├── api/                        # واجهة FastAPI
-│   ├── main.py                 #   نقطة الدخول و /health
-│   ├── schemas.py              #   نماذج الطلبات والاستجابات (Pydantic)
-│   └── routes/                 #   analyze · parents · dashboard
-├── app/                        # واجهة Streamlit
-│   ├── Home.py                 #   الصفحة الرئيسية
-│   ├── pages/                  #   Dashboard · live_demo · parent_setup
-│   ├── components/             #   الشريط الجانبي ومؤشر الخطورة
-│   └── services/api_client.py  #   عميل للتواصل مع واجهة API
-├── notebooks/AIN_Training.ipynb  # دفتر تدريب النموذج
-├── Data/                       # بيانات التدريب
-├── tests/                      # اختبارات pytest
-├── .devcontainer/              # إعداد GitHub Codespaces
-└── requirements.txt            # المكتبات المطلوبة
+│
+├── ain/
+│   ├── model/
+│   │   └── MARBERT model loading & inference
+│   │
+│   ├── Risk/
+│   │   └── Engine.py
+│   │
+│   ├── alerts/
+│   │   └── Alert logic & cooldown
+│   │
+│   ├── database/
+│   │   └── SQLAlchemy models & repositories
+│   │
+│   └── notifications/
+│       └── n8n integration
+│
+├── api/
+│   ├── main.py
+│   ├── schemas.py
+│   └── routes/
+│       ├── analyze.py
+│       ├── parents.py
+│       ├── dashboard.py
+│       ├── alerts.py
+│       └── feedback.py
+│
+├── app/
+│   ├── Home.py
+│   │
+│   ├── pages/
+│   │   ├── live_demo.py
+│   │   ├── dashboard.py
+│   │   ├── parent_setup.py
+│   │   └── feedback.py
+│   │
+│   ├── components/
+│   │   ├── sidebar.py
+│   │   └── risk_indicator.py
+│   │
+│   └── services/
+│       └── api_client.py
+│
+├── Data/
+│   └── Training datasets
+│
+├── notebooks/
+│   └── AIN_Training.ipynb
+│
+├── tests/
+│   └── Automated tests
+│
+├── .devcontainer/
+│   └── Codespaces configuration
+│
+├── requirements.txt
+└── README.md
 ```
 
-## 🚀 التشغيل محلياً
+---
 
-**1. تجهيز البيئة**
+# ⚙️ Technologies
+
+| Technology                | الاستخدام                     |
+| ------------------------- | ----------------------------- |
+| **Python**                | لغة البرمجة الأساسية          |
+| **MARBERTv2**             | تحليل وتصنيف النصوص العربية   |
+| **PyTorch**               | تشغيل النموذج                 |
+| **Transformers**          | تحميل وتشغيل MARBERTv2        |
+| **FastAPI**               | Backend API                   |
+| **Pydantic**              | API schemas & validation      |
+| **SQLAlchemy**            | التعامل مع قاعدة البيانات     |
+| **PostgreSQL / Supabase** | تخزين البيانات                |
+| **Streamlit**             | واجهة المستخدم والـ Dashboard |
+| **n8n**                   | أتمتة إرسال التنبيهات         |
+| **pytest**                | اختبار النظام                 |
+| **GitHub Codespaces**     | بيئة التطوير                  |
+
+---
+
+# 🚀 تشغيل المشروع محليًا
+
+## 1. Clone
 
 ```bash
 git clone https://github.com/HamzehAlshraah/AIN.git
 cd AIN
+```
+
+## 2. إنشاء البيئة الافتراضية
+
+```bash
 python -m venv .venv
-source .venv/bin/activate      # على ويندوز: .venv\Scripts\activate
+```
+
+### Windows
+
+```bash
+.venv\Scripts\activate
+```
+
+### Linux / macOS
+
+```bash
+source .venv/bin/activate
+```
+
+## 3. تثبيت المتطلبات
+
+```bash
 pip install -r requirements.txt
 ```
 
-**2. إعداد المتغيرات (اختياري)**
+---
 
-أنشئ ملف `.env` في جذر المشروع:
+# 🔐 Environment Variables
+
+أنشئ ملف `.env` في جذر المشروع.
+
+مثال:
 
 ```env
-# رابط webhook في n8n لإرسال تنبيهات البريد (بدونه تُحفظ التنبيهات ولا يُرسل بريد)
-N8N_WEBHOOK_URL=https://your-n8n-instance/webhook/xxxx
-
-# عنوان واجهة API الذي تتصل به Streamlit (الافتراضي: http://localhost:8000)
 API_BASE_URL=http://localhost:8000
+N8N_WEBHOOK_URL=your_n8n_webhook_url
+
+DATABASE_URL=your_database_url
 ```
 
-**3. تشغيل واجهة API** (في نافذة طرفية)
+> لا تقم برفع ملف `.env` أو أي مفاتيح سرية إلى GitHub.
+
+---
+
+# ▶️ تشغيل الـ Backend
 
 ```bash
 uvicorn api.main:app --reload --port 8000
 ```
 
-التوثيق التفاعلي متاح على `http://localhost:8000/docs`
+بعد التشغيل يمكن الوصول إلى:
 
-**4. تشغيل واجهة Streamlit** (في نافذة طرفية ثانية)
+```text
+http://localhost:8000
+```
+
+وتوثيق الـ API:
+
+```text
+http://localhost:8000/docs
+```
+
+---
+
+# ▶️ تشغيل Streamlit
+
+في Terminal آخر:
 
 ```bash
 streamlit run app/Home.py
 ```
 
-سيفتح التطبيق تلقائياً على `http://localhost:8501`
+سيعمل التطبيق عادةً على:
 
-> **لاستلام التنبيهات:** افتح صفحة **Parent Setup** وسجّل بريدك الإلكتروني قبل بدء المحادثة في صفحة **Live Demo**، لأن التنبيه يُرسَل إلى البريد المرتبط بمعرّف المحادثة الحالية.
+```text
+http://localhost:8501
+```
 
-> **على GitHub Codespaces:** ملف `.devcontainer` يثبّت المتطلبات ويمرّر المنفذين `8000` (FastAPI) و`8501` (Streamlit) تلقائياً.
+### النسخة المنشورة
 
-## 🔌 واجهة API
+يمكن تجربة النسخة المنشورة مباشرة:
 
-جميع المسارات تحت البادئة `/api/v1` ما عدا `/health`.
+**https://ainchild.streamlit.app/**
 
-| الطريقة | المسار | الوصف |
-|---|---|---|
-| `GET` | `/health` | فحص حالة الخدمة |
-| `POST` | `/api/v1/analyze` | تحليل رسالة وإرجاع التصنيف ومستوى الخطورة |
-| `POST` | `/api/v1/parents` | تسجيل ولي أمر (بريد + اسم اختياري) لمحادثة معيّنة |
-| `GET` | `/api/v1/dashboard/summary` | ملخص الإحصائيات |
-| `GET` | `/api/v1/alerts` | قائمة التنبيهات (الأحدث أولاً) |
-| `GET` | `/api/v1/alerts/{alert_id}` | تفاصيل تنبيه |
-| `PATCH` | `/api/v1/alerts/{alert_id}` | تحديث الحالة: `NEW` أو `REVIEWED` أو `DISMISSED` |
-| `GET` | `/api/v1/conversations/{conversation_id}/messages` | رسائل محادثة معيّنة |
+---
 
-**مثال:**
+# ☁️ GitHub Codespaces
+
+تم إعداد المشروع للعمل داخل **GitHub Codespaces** باستخدام:
+
+```text
+.devcontainer/
+```
+
+ويتم تجهيز بيئة التطوير والمكتبات المطلوبة تلقائيًا.
+
+---
+
+# 🔌 API
+
+جميع API endpoints تستخدم:
+
+```text
+/api/v1
+```
+
+مع استثناء:
+
+```text
+/health
+```
+
+### أهم endpoints
+
+| Method | Endpoint                    | الوظيفة            |
+| ------ | --------------------------- | ------------------ |
+| GET    | `/health`                   | فحص حالة API       |
+| POST   | `/api/v1/analyze`           | تحليل رسالة        |
+| POST   | `/api/v1/parents`           | تسجيل ولي الأمر    |
+| GET    | `/api/v1/dashboard/summary` | إحصائيات Dashboard |
+| GET    | `/api/v1/alerts`            | عرض التنبيهات      |
+| PATCH  | `/api/v1/alerts/{id}`       | تحديث حالة التنبيه |
+| POST   | `/api/v1/feedback`          | إرسال Feedback     |
+
+---
+
+# 🧪 Testing
+
+يستخدم المشروع **pytest** لاختبار مكونات النظام.
+
+لتشغيل الاختبارات:
 
 ```bash
-curl -X POST http://localhost:8000/api/v1/analyze \
-  -H "Content-Type: application/json" \
-  -d '{"text": "نص الرسالة هنا", "conversation_id": "demo-001", "platform": "whatsapp"}'
+pytest tests/ -v
 ```
 
-```json
-{
-  "message_id": "1",
-  "conversation_id": "demo-001",
-  "label": "Safe",
-  "risk_score": 0.0312,
-  "safe_score": 0.9688,
-  "severity": "SAFE",
-  "should_alert": false
-}
+وتشمل الاختبارات أجزاء مثل:
+
+* API
+* Database
+* Alert system
+* Risk logic
+* Feedback
+* Cooldown
+* Notifications
+
+---
+
+# 🔄 Workflow
+
+الـ workflow الأساسي للنظام:
+
+```text
+User Message
+     │
+     ▼
+Streamlit
+     │
+     ▼
+FastAPI
+     │
+     ▼
+MARBERTv2
+     │
+     ▼
+Classification
+     │
+     ▼
+Risk Score
+     │
+     ▼
+Risk Engine
+     │
+     ├───────────────┐
+     │               │
+     ▼               ▼
+Normal          High Risk
+                     │
+                     ▼
+                   Alert
+                     │
+                     ▼
+                    n8n
+                     │
+                     ▼
+             Parent Notification
 ```
 
-## 🧪 الاختبارات
+---
 
-```bash
-pip install pytest httpx
-pytest tests/
-```
+# 🔒 Privacy & Safety
 
-تغطي الاختبارات: قواعد التنبيه وفترة التهدئة، قاعدة البيانات، واجهة API، وإرسال التنبيهات إلى n8n.
+AIN يتعامل مع بيانات مرتبطة بسلامة الأطفال، لذلك يجب التعامل مع البيانات بحذر.
 
-## 🛠️ التقنيات المستخدمة
+في بيئة الإنتاج يجب:
 
-- **Python** · **PyTorch** · **Transformers (Hugging Face)**
-- **FastAPI** · **Uvicorn** · **Pydantic** — واجهة API
-- **SQLAlchemy** · **SQLite** — قاعدة البيانات
-- **Streamlit** — واجهة المستخدم ولوحة التحكم
-- **n8n** — أتمتة إرسال التنبيهات
-- **MARBERTv2** — النموذج اللغوي الأساسي
+* حماية بيانات المستخدمين.
+* عدم تخزين بيانات حساسة دون حاجة.
+* حماية مفاتيح API وWebhooks.
+* عدم رفع ملفات `.env` إلى GitHub.
+* تحديد صلاحيات الوصول إلى Dashboard.
+* توضيح للمستخدمين ما الذي تتم مراقبته وكيف تتم معالجة البيانات.
 
-## 📊 خط أنابيب التدريب (باختصار)
+---
 
-1. جمع ودمج ثلاث مجموعات بيانات عربية مصنّفة (تنمر / إساءة / خطاب كراهية) وتوحيد تسمياتها إلى `Safe` و`risky`
-2. تنظيف النصوص: إزالة الروابط والمنشنز والوسوم، تحويل الإيموجي إلى نص، تطبيع الحروف العربية، إزالة التشكيل وتقليل تكرار الحروف، واستبعاد النصوص الأقل من 3 كلمات
-3. تقسيم البيانات (تدريب / تحقق / اختبار) بنسبة 80 / 10 / 10 بطريقة Stratified
-4. Fine-tuning على MARBERTv2 بمعدل تعلّم `2e-5` وحجم دفعة 16 وحتى 10 حقب، مع إيقاف مبكر (صبر 3 حقب) واختيار أفضل نموذج حسب F1 لفئة risky
-5. تقييم نهائي على بيانات لم يرها النموذج أثناء التدريب
+# ⚠️ Disclaimer
 
-## 🔒 الخصوصية
+AIN هو **نظام مساعد للكشف عن المحتوى المقلق** وليس نظامًا قادرًا على تحديد الخطر بشكل مثالي.
 
-تُخزَّن نصوص الرسائل المحلَّلة ودرجات الخطورة والتنبيهات في قاعدة بيانات SQLite محلية (`ain.db`) مستثناة من Git. إذا نشرت النظام لاستخدام حقيقي، فراجع سياسات حماية بيانات الأطفال في بلدك، وأبلغ الأطفال وأولياء الأمور بوضوح بما يُراقَب وكيف يُستخدم.
+قد تحدث:
 
-## ⚠️ إخلاء مسؤولية
+* False Positives
+* False Negatives
 
-هذا المشروع أداة مساعدة وليس بديلاً عن الإشراف الأسري المباشر. النموذج قد يخطئ أحياناً (إنذارات كاذبة أو تفويت حالات نادرة)، ولا يُغني عن التواصل المفتوح مع الأطفال حول سلامتهم الرقمية.
+لذلك لا يجب الاعتماد على النظام وحده في القرارات المتعلقة بسلامة الطفل، ويجب أن يبقى الإشراف البشري والتواصل الأسري جزءًا أساسيًا من عملية الحماية.
 
-## 📄 الترخيص
+---
 
-هذا المشروع لأغراض تعليمية وبحثية.
+# 🎓 Project Purpose
+
+تم تطوير **AIN** كمشروع في مجال:
+
+* Artificial Intelligence
+* Natural Language Processing
+* Arabic NLP
+* Machine Learning
+* Child Digital Safety
+* Real-Time Risk Detection
+* Automated Notifications
+
+ويجمع المشروع بين **Machine Learning Model + Backend API + Database + Web Interface + Automation Workflow** في نظام واحد متكامل.
+
+---
+
+## 👁️ AIN
+
+**عين — لأن حماية الطفل تبدأ من الانتباه.**
+
+🚀 **[تجربة AIN مباشرة على Streamlit](https://ainchild.streamlit.app/)**
+
+💻 **[GitHub Repository](https://github.com/HamzehAlshraah/AIN)**
