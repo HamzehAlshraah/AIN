@@ -1,0 +1,73 @@
+{
+  "name": "FeedBack-AIN",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "785633dd-1253-4aee-9c8a-c4964549e612",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "bcd84c15-3e82-4331-8354-2ec6d22ec478",
+      "name": "Webhook",
+      "webhookId": "785633dd-1253-4aee-9c8a-c4964549e612"
+    },
+    {
+      "parameters": {
+        "sendTo": "aigoat.hh@gmail.com",
+        "subject": "💡 رسالة جديدة من AIN - اقتراحات وملاحظات",
+        "message": "=<div style=\"max-width: 550px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: rtl; text-align: right; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e0e0e0; background-color: #ffffff;\">\n  \n  <!-- Header -->\n  <div style=\"background-color: #0288d1; color: #ffffff; padding: 20px; text-align: center;\">\n    <div style=\"font-size: 28px; margin-bottom: 5px;\">📩</div>\n    <h2 style=\"margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 0.5px;\">ملاحظة / اقتراح جديد - AIN</h2>\n  </div>\n\n  <!-- Content Body -->\n  <div style=\"padding: 24px; color: #333333; line-height: 1.6;\">\n    <p style=\"margin-top: 0; font-size: 15px; color: #555555;\">\n      تم استلام ملاحظة / اقتراح جديد بخصوص النظام يتطلب مراجعتك.\n    </p>\n\n    <!-- Details Card -->\n    <div style=\"background-color: #f4f8fb; border-right: 4px solid #0288d1; border-radius: 6px; padding: 15px; margin: 20px 0;\">\n      \n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">معرف الملاحظة (Feedback ID):</span>\n        <span style=\"font-family: monospace; color: #333333; font-weight: bold;\">{{ $json.body?.feedback_id || $json.feedback_id }}</span>\n      </div>\n\n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">التاريخ والوقت (Date & Time):</span>\n        <span style=\"font-family: monospace; color: #333333; font-weight: bold;\">{{ $now.toFormat('dd/MM/yyyy - HH:mm') }}</span>\n      </div>\n\n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">نوع الملاحظة (Type):</span>\n        <span style=\"font-weight: bold; color: #0288d1;\">{{ $json.body?.feedback_type || $json.feedback_type }}</span>\n      </div>\n\n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">اسم المرسل (Name):</span>\n        <span style=\"color: #333333;\">{{ $json.body?.name || $json.name }}</span>\n      </div>\n\n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">البريد الإلكتروني (Email):</span>\n        <span style=\"color: #333333; font-family: monospace;\">{{ $json.body?.email || $json.email }}</span>\n      </div>\n\n      <!-- Feedback Details Box -->\n      <div style=\"padding-top: 12px;\">\n        <span style=\"font-weight: bold; color: #555555; display: block; margin-bottom: 6px;\">محتوى الملاحظة / المشكلة (Message):</span>\n        <div style=\"background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; font-size: 14px; color: #222222; word-break: break-word; line-height: 1.5; white-space: pre-wrap;\">{{ $json.body?.message || $json.message || 'لا يوجد نص للملاحظة' }}</div>\n      </div>\n\n    </div>\n  </div>\n\n  <!-- Footer -->\n  <div style=\"background-color: #f4f4f4; padding: 12px; text-align: center; font-size: 12px; color: #888888; border-top: 1px solid #e0e0e0;\">\n    هذه الرسالة تم إرسالها تلقائيًا من نظام FeedBack-AIN.\n  </div>\n\n</div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "cf876d80-8891-4496-bf8e-02b78ee219ee",
+      "name": "Send a message",
+      "webhookId": "1725fb5c-5baa-4030-931d-c229816ee456",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OAZCM5XghbDUt8FF",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b9c410f2-4f98-4440-923b-6a1a7e8c7ced",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f4f63e8ecf934f479892b5e40dca5204d65b8de44b58c298363e0ace13e94870"
+  },
+  "nodeGroups": [],
+  "id": "efjJ80KJnqsDCfco",
+  "tags": []
+}

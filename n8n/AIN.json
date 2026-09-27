@@ -1,0 +1,73 @@
+{
+  "name": "AIN",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ain-alert",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "df3858ad-aea6-4dc0-a318-3c0da3440164",
+      "name": "Webhook",
+      "webhookId": "ad777b68-c446-4f0b-83bf-ef710071ae38"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{$json.body.parent_email}}",
+        "subject": "🚨 تنبيه أمان الطفل - AIN",
+        "message": "=<div style=\"max-width: 550px; margin: 0 auto; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; direction: rtl; text-align: right; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.08); border: 1px solid #e0e0e0; background-color: #ffffff;\">\n  \n  <!-- Header -->\n  <div style=\"background-color: #d32f2f; color: #ffffff; padding: 20px; text-align: center;\">\n    <div style=\"font-size: 28px; margin-bottom: 5px;\">🚨</div>\n    <h2 style=\"margin: 0; font-size: 20px; font-weight: bold; letter-spacing: 0.5px;\">تنبيه أمان - AIN</h2>\n  </div>\n\n  <!-- Content Body -->\n  <div style=\"padding: 24px; color: #333333; line-height: 1.6;\">\n    <p style=\"margin-top: 0; font-size: 15px; color: #555555;\">\n      تم اكتشاف رسالة ذات درجة خطورة عالية تتطلب مراجعتك.\n    </p>\n\n    <!-- Details Card -->\n    <div style=\"background-color: #f9f9f9; border-right: 4px solid #d32f2f; border-radius: 6px; padding: 15px; margin: 20px 0;\">\n      \n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">التاريخ والوقت (Date & Time):</span>\n        <span style=\"font-family: monospace; color: #333333; font-weight: bold;\">{{ $now.toFormat('dd/MM/yyyy - HH:mm') }}</span>\n      </div>\n\n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">مستوى الخطورة (Risk Score):</span>\n        <span style=\"font-weight: bold; color: #d32f2f;\">{{ $json.body?.risk_score || $json.risk_score }}</span>\n      </div>\n\n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">الشدة (Severity):</span>\n        <span style=\"font-weight: bold; color: #d32f2f;\">{{ $json.body?.severity || $json.severity }}</span>\n      </div>\n\n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">معرف المحادثة (Conversation ID):</span>\n        <span style=\"font-family: monospace; color: #333333;\">{{ $json.body?.conversation_id || $json.conversation_id }}</span>\n      </div>\n\n      <div style=\"display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #e0e0e0;\">\n        <span style=\"font-weight: bold; color: #555555;\">معرف الرسالة (Message ID):</span>\n        <span style=\"font-family: monospace; color: #333333;\">{{ $json.body?.message_id || $json.message_id }}</span>\n      </div>\n\n      <!-- Message Text Box -->\n      <div style=\"padding-top: 12px;\">\n        <span style=\"font-weight: bold; color: #555555; display: block; margin-bottom: 6px;\">محتوى الرسالة (Message Content):</span>\n        <div style=\"background-color: #ffffff; border: 1px solid #e0e0e0; border-radius: 6px; padding: 12px; font-size: 14px; color: #222222; word-break: break-word; line-height: 1.5; white-space: pre-wrap;\">{{ $json.body?.message_text || $json.message_text || 'لا يوجد نص للرسالة' }}</div>\n      </div>\n\n    </div>\n  </div>\n\n  <!-- Footer -->\n  <div style=\"background-color: #f4f4f4; padding: 12px; text-align: center; font-size: 12px; color: #888888; border-top: 1px solid #e0e0e0;\">\n    هذه الرسالة تم إرسالها تلقائيًا من نظام AIN لحماية الأطفال.\n  </div>\n\n</div>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "22b89121-1cb7-4934-98c2-d5eb215ab8aa",
+      "name": "Send a message",
+      "webhookId": "71fcf1dd-1559-4228-aea9-f544e51bb95b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "OAZCM5XghbDUt8FF",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "f312c73b-d8e6-467d-89fa-45e3073971f1",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f4f63e8ecf934f479892b5e40dca5204d65b8de44b58c298363e0ace13e94870"
+  },
+  "nodeGroups": [],
+  "id": "8h7POeDBCgD9slKx",
+  "tags": []
+}
