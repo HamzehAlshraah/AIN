@@ -1,586 +1,164 @@
-# 👁️ عين (AIN)
+<div align="center">
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://ainchild.streamlit.app/)
-![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
-![Model](https://img.shields.io/badge/Model-MARBERTv2-orange)
-![API](https://img.shields.io/badge/API-FastAPI-009688)
-![Database](https://img.shields.io/badge/Database-Supabase%20%2F%20PostgreSQL-3ECF8E)
+# 👁️ AIN | عين
 
-> **AIN (عين)** هو نظام ذكاء اصطناعي يهدف إلى المساعدة في حماية الأطفال والمراهقين من المحتوى العربي الخطِر من خلال تحليل الرسائل، تقدير مستوى الخطورة، وتوليد تنبيهات لولي الأمر عند اكتشاف محتوى عالي الخطورة.
+### نظام ذكاء اصطناعي لكشف الرسائل الخطرة الموجّهة للأطفال باللغة العربية
 
-## 🌐 تجربة النظام مباشرة
+مبني على نموذج **MARBERTv2** لفهم اللهجات والفصحى العربية، لحماية الأطفال من الاستغلال والتحرش والمحتوى الخطر أثناء المحادثات الرقمية.
 
-### 👁️ AIN | Streamlit
+[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Transformers](https://img.shields.io/badge/🤗%20Transformers-MARBERTv2-yellow)](https://huggingface.co/UBC-NLP/MARBERTv2)
+[![Streamlit](https://img.shields.io/badge/Streamlit-App-FF4B4B?logo=streamlit&logoColor=white)](https://streamlit.io/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-Backend-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](#-الترخيص)
 
-يمكن تجربة الواجهة مباشرة من خلال:
-
-**[🚀 فتح تطبيق عين (AIN)](https://ainchild.streamlit.app/)**
+</div>
 
 ---
 
-## 🎯 فكرة المشروع
+## 📖 نظرة عامة
 
-يعتمد **AIN** على نموذج اللغة العربي **MARBERTv2** لتحليل الرسائل العربية وتصنيفها إلى:
+**AIN (عين)** هو نظام ذكاء اصطناعي مخصّص للغة العربية، يهدف إلى رصد وكشف الرسائل الخطرة أو المشبوهة الموجّهة للأطفال في بيئات المحادثة الرقمية (تطبيقات الدردشة، الألعاب، المنصات التعليمية، إلخ).
 
-* 🟢 **Safe** — رسالة آمنة
-* 🔴 **Risky** — رسالة تحتوي على محتوى مقلق أو خطِر
+يعتمد المشروع على نموذج **[MARBERTv2](https://huggingface.co/UBC-NLP/MARBERTv2)**، وهو نموذج BERT مدرّب خصيصًا على اللهجات العربية المختلفة والفصحى، مما يمنحه قدرة أفضل على فهم السياق العربي مقارنة بالنماذج متعددة اللغات التقليدية.
 
-بعد التصنيف، يقوم النظام بتحويل درجة الخطورة إلى مستوى واضح يساعد في تحديد الإجراء المناسب.
-
-الهدف من النظام هو المساعدة في اكتشاف أنماط مثل:
-
-* التنمر الإلكتروني
-* الإساءة اللفظية
-* خطاب الكراهية
-* المحتوى العدائي أو المسيء
-* الرسائل التي قد تشكل خطرًا على الطفل أو المراهق
+> ⚠️ الاسم "عين" (AIN) يرمز إلى فكرة المشروع: **عين ساهرة** ترصد المحتوى الخطر وتنبّه قبل وقوع الضرر.
 
 ---
 
-## ✨ أهم مميزات AIN
+## ✨ أبرز الميزات
 
-### 🤖 تحليل الرسائل باستخدام الذكاء الاصطناعي
-
-يستخدم المشروع **MARBERTv2**، وهو نموذج متخصص في معالجة اللغة العربية، لتحليل محتوى الرسائل.
-
-### 📊 Risk Score
-
-كل رسالة تحصل على:
-
-* `risk_score`
-* `safe_score`
-* `label`
-* `severity`
-* `should_alert`
-
-وبذلك لا يكتفي النظام بقول إن الرسالة خطرة أو آمنة، بل يعطي **درجة ومستوى للخطورة**.
-
-### 🚦 مستويات الخطورة
-
-| المستوى   |   `risk_score` | الإجراء           |
-| --------- | -------------: | ----------------- |
-| 🟢 SAFE   |  أقل من `0.30` | لا يوجد تنبيه     |
-| 🟡 LOW    | `0.30 – <0.50` | مراقبة            |
-| 🟠 MEDIUM | `0.50 – <0.75` | مستوى خطورة متوسط |
-| 🔴 HIGH   |       `≥ 0.75` | إنشاء تنبيه       |
+- 🧠 **تصنيف النصوص العربية** باستخدام نموذج MARBERTv2 المُدرّب مسبقًا (Fine-tuned) على بيانات مخصّصة لكشف الرسائل الخطرة.
+- 💬 **واجهة تجريبية تفاعلية** مبنية بـ Streamlit لتجربة النموذج مباشرة عبر محادثة حية.
+- ⚙️ **خدمة API** مبنية بـ FastAPI لإتاحة النموذج كخدمة قابلة للتكامل مع تطبيقات أخرى.
+- 🗄️ **دعم قواعد بيانات متعددة**: PostgreSQL و MongoDB لتخزين المحادثات والنتائج.
+- 🔄 **معالجة غير متزامنة** للمهام الثقيلة باستخدام Celery و Redis (مع لوحة مراقبة Flower).
+- 📓 **دفتر تدريب (Notebook)** موثّق يشرح خطوات تجهيز البيانات وتدريب وتقييم النموذج.
 
 ---
 
-## 🚨 نظام التنبيهات
+## 🏗️ التقنيات المستخدمة
 
-عند وصول الرسالة إلى مستوى **HIGH**، يقوم النظام بإنشاء Alert.
+| الفئة | التقنيات |
+|---|---|
+| النموذج / معالجة اللغة | `transformers`, `torch`, MARBERTv2 |
+| الواجهة الخلفية (API) | `FastAPI`, `uvicorn`, `pydantic` |
+| الواجهة التفاعلية | `streamlit` |
+| قواعد البيانات | `PostgreSQL` (`psycopg2-binary`, `SQLAlchemy`), `MongoDB` (`motor`, `pymongo`) |
+| المهام غير المتزامنة | `celery`, `redis`, `flower` |
+| أدوات مساعدة | `langchain`, `openai`, `gspread`, `google-auth`, `python-dotenv` |
 
-إذا كان ولي الأمر مسجلاً، يتم إرسال بيانات التنبيه إلى **n8n** عبر Webhook، ليتم تنفيذ عملية الإشعار، مثل إرسال بريد إلكتروني إلى ولي الأمر.
+---
 
-```text
-Message
-   │
-   ▼
-MARBERTv2
-   │
-   ▼
-Risk Score
-   │
-   ▼
-Risk Engine
-   │
-   ├── SAFE / LOW / MEDIUM
-   │
-   └── HIGH
-         │
-         ▼
-       Alert
-         │
-         ▼
-        n8n
-         │
-         ▼
- Parent Notification
+## 📂 هيكل المشروع
+
 ```
-
----
-
-## ⏱️ Feedback Cooldown
-
-يحتوي النظام أيضًا على نظام **Feedback Cooldown** لمنع إرسال عدد كبير من الملاحظات المتكررة خلال فترة زمنية قصيرة.
-
-يتم تطبيق فترة التهدئة على مستوى المستخدم وفق آلية التعريف المستخدمة في النظام، بدل الاعتماد على جلسة محادثة مؤقتة فقط.
-
----
-
-## 👨‍👩‍👧 Parent Setup
-
-يوفر النظام صفحة مخصصة لتسجيل ولي الأمر.
-
-يمكن لولي الأمر إدخال:
-
-* البريد الإلكتروني
-* الاسم بشكل اختياري
-
-ثم يتم ربط بيانات ولي الأمر بالمحادثة/المستخدم وفق آلية النظام، حتى يتمكن النظام من إرسال التنبيهات عند اكتشاف حالات عالية الخطورة.
-
----
-
-## 💬 Live Demo
-
-تتيح واجهة **Live Demo** تجربة النظام بشكل مباشر.
-
-يمكن إرسال رسالة عربية ومشاهدة نتيجة التحليل، بما في ذلك:
-
-```text
-Label
-Risk Score
-Safe Score
-Severity
-Alert Status
-```
-
-وهذا يسمح بعرض طريقة عمل نموذج الذكاء الاصطناعي بشكل تفاعلي.
-
----
-
-## 📊 Dashboard
-
-يحتوي النظام على لوحة تحكم لمتابعة حالة النظام والرسائل والتنبيهات.
-
-يمكن من خلالها متابعة معلومات مثل:
-
-* عدد الرسائل التي تم تحليلها
-* عدد حالات الخطورة
-* الحالات عالية الخطورة
-* أعلى Risk Score
-* التنبيهات
-* حالة التنبيه
-
-كما تم تحسين طريقة جلب بيانات الـ Dashboard لتقليل عدد طلبات الـ API وتحسين الأداء.
-
----
-
-## 🧠 النموذج المستخدم
-
-### MARBERTv2
-
-النموذج الأساسي:
-
-**UBC-NLP/MARBERTv2**
-
-وهو نموذج مبني لمعالجة اللغة العربية ويُستخدم في المشروع لتحليل وتصنيف الرسائل.
-
-النموذج المدرّب للمشروع:
-
-**HazmehAlshraah/marbert-risk-model**
-
-ويتم تحميل النموذج عند الحاجة واستخدامه لتحليل الرسائل العربية.
-
-### نتائج النموذج
-
-| Metric         | Result |
-| -------------- | -----: |
-| Accuracy       |  91.3% |
-| Recall – Risky |    95% |
-| F1 – Safe      |   0.91 |
-| F1 – Risky     |   0.91 |
-
-> تم الحصول على هذه النتائج على مجموعة اختبار مستقلة، وهي تعكس أداء النموذج على بيانات التقييم المستخدمة في المشروع.
-
----
-
-## 📚 البيانات المستخدمة
-
-تم دمج عدة مصادر للبيانات العربية بهدف تدريب نموذج قادر على التعامل مع أنواع مختلفة من المحتوى الخطِر.
-
-من المصادر المستخدمة:
-
-* **ArbCyD** — بيانات التنمر الإلكتروني العربي
-* **Arabic Offensive Comment Detection**
-* **Egyptian Arabic Hate Speech**
-
-تم توحيد التصنيفات إلى فئتين رئيسيتين:
-
-```text
-Safe
-Risky
-```
-
-ثم استخدام البيانات في عملية تدريب وتقييم النموذج.
-
----
-
-# 🏗️ Architecture
-
-يتكون النظام من عدة أجزاء رئيسية:
-
-```text
-                    ┌──────────────────┐
-                    │    Streamlit     │
-                    │   User Interface │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │      FastAPI     │
-                    │       API        │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │    MARBERTv2     │
-                    │   NLP Model      │
-                    └────────┬─────────┘
-                             │
-                             ▼
-                    ┌──────────────────┐
-                    │   Risk Engine    │
-                    └────────┬─────────┘
-                             │
-                    ┌────────┴─────────┐
-                    ▼                  ▼
-             ┌─────────────┐    ┌─────────────┐
-             │  Database   │    │    Alert    │
-             │ PostgreSQL  │    │   System    │
-             └─────────────┘    └──────┬──────┘
-                                       │
-                                       ▼
-                                    ┌──────┐
-                                    │ n8n  │
-                                    └──┬───┘
-                                       │
-                                       ▼
-                                Parent Notification
-```
-
----
-
-# 📁 Project Structure
-
-```text
 AIN/
-│
-├── ain/
-│   ├── model/
-│   │   └── MARBERT model loading & inference
-│   │
-│   ├── Risk/
-│   │   └── Engine.py
-│   │
-│   ├── alerts/
-│   │   └── Alert logic & cooldown
-│   │
-│   ├── database/
-│   │   └── SQLAlchemy models & repositories
-│   │
-│   └── notifications/
-│       └── n8n integration
-│
-├── api/
-│   ├── main.py
-│   ├── schemas.py
-│   └── routes/
-│       ├── analyze.py
-│       ├── parents.py
-│       ├── dashboard.py
-│       ├── alerts.py
-│       └── feedback.py
-│
-├── app/
-│   ├── Home.py
-│   │
-│   ├── pages/
-│   │   ├── live_demo.py
-│   │   ├── dashboard.py
-│   │   ├── parent_setup.py
-│   │   └── feedback.py
-│   │
-│   ├── components/
-│   │   ├── sidebar.py
-│   │   └── risk_indicator.py
-│   │
-│   └── services/
-│       └── api_client.py
-│
-├── Data/
-│   └── Training datasets
-│
-├── notebooks/
-│   └── AIN_Training.ipynb
-│
-├── tests/
-│   └── Automated tests
-│
-├── .devcontainer/
-│   └── Codespaces configuration
-│
-├── requirements.txt
+├── .devcontainer/          # إعدادات بيئة التطوير (Dev Container)
+├── Data/                   # مجموعات البيانات المستخدمة في التدريب والتقييم
+├── AIN.ipynb               # دفتر تدريب وتقييم النموذج
+├── streamlit_chat_app.py   # واجهة الدردشة التجريبية (Streamlit)
+├── requirements.txt        # الاعتماديات المطلوبة للمشروع
 └── README.md
 ```
 
 ---
 
-# ⚙️ Technologies
+## 🚀 التثبيت والتشغيل
 
-| Technology                | الاستخدام                     |
-| ------------------------- | ----------------------------- |
-| **Python**                | لغة البرمجة الأساسية          |
-| **MARBERTv2**             | تحليل وتصنيف النصوص العربية   |
-| **PyTorch**               | تشغيل النموذج                 |
-| **Transformers**          | تحميل وتشغيل MARBERTv2        |
-| **FastAPI**               | Backend API                   |
-| **Pydantic**              | API schemas & validation      |
-| **SQLAlchemy**            | التعامل مع قاعدة البيانات     |
-| **PostgreSQL / Supabase** | تخزين البيانات                |
-| **Streamlit**             | واجهة المستخدم والـ Dashboard |
-| **n8n**                   | أتمتة إرسال التنبيهات         |
-| **pytest**                | اختبار النظام                 |
-| **GitHub Codespaces**     | بيئة التطوير                  |
+### المتطلبات الأساسية
 
----
+- Python 3.10 أو أحدث
+- (اختياري) وصول إلى GPU لتسريع الاستدلال/التدريب
+- حسابات/مفاتيح خدمات خارجية إن استُخدمت (مثل OpenAI) — تُضاف في ملف `.env`
 
-# 🚀 تشغيل المشروع محليًا
-
-## 1. Clone
+### 1. استنساخ المستودع
 
 ```bash
 git clone https://github.com/HamzehAlshraah/AIN.git
 cd AIN
 ```
 
-## 2. إنشاء البيئة الافتراضية
+### 2. إنشاء بيئة افتراضية وتثبيت الاعتماديات
 
 ```bash
-python -m venv .venv
-```
+python -m venv venv
+source venv/bin/activate      # على Windows: venv\Scripts\activate
 
-### Windows
-
-```bash
-.venv\Scripts\activate
-```
-
-### Linux / macOS
-
-```bash
-source .venv/bin/activate
-```
-
-## 3. تثبيت المتطلبات
-
-```bash
 pip install -r requirements.txt
 ```
 
----
+### 3. إعداد متغيرات البيئة
 
-# 🔐 Environment Variables
-
-أنشئ ملف `.env` في جذر المشروع.
-
-مثال:
+أنشئ ملف `.env` في جذر المشروع وأضف المتغيرات اللازمة (مثل مفاتيح API وروابط قواعد البيانات):
 
 ```env
-API_BASE_URL=http://localhost:8000
-N8N_WEBHOOK_URL=your_n8n_webhook_url
-
-DATABASE_URL=your_database_url
+OPENAI_API_KEY=your_key_here
+DATABASE_URL=postgresql://user:password@localhost:5432/ain
+MONGODB_URI=mongodb://localhost:27017/ain
 ```
 
-> لا تقم برفع ملف `.env` أو أي مفاتيح سرية إلى GitHub.
-
----
-
-# ▶️ تشغيل الـ Backend
+### 4. تشغيل واجهة التجربة (Streamlit)
 
 ```bash
-uvicorn api.main:app --reload --port 8000
+streamlit run streamlit_chat_app.py
 ```
 
-بعد التشغيل يمكن الوصول إلى:
+### 5. استكشاف التدريب والتقييم
 
-```text
-http://localhost:8000
-```
-
-وتوثيق الـ API:
-
-```text
-http://localhost:8000/docs
-```
-
----
-
-# ▶️ تشغيل Streamlit
-
-في Terminal آخر:
+افتح دفتر `AIN.ipynb` عبر Jupyter أو Google Colab لاستعراض خطوات تجهيز البيانات، ضبط النموذج (Fine-tuning)، وتقييم الأداء.
 
 ```bash
-streamlit run app/Home.py
-```
-
-سيعمل التطبيق عادةً على:
-
-```text
-http://localhost:8501
-```
-
-### النسخة المنشورة
-
-يمكن تجربة النسخة المنشورة مباشرة:
-
-**https://ainchild.streamlit.app/**
-
----
-
-# ☁️ GitHub Codespaces
-
-تم إعداد المشروع للعمل داخل **GitHub Codespaces** باستخدام:
-
-```text
-.devcontainer/
-```
-
-ويتم تجهيز بيئة التطوير والمكتبات المطلوبة تلقائيًا.
-
----
-
-# 🔌 API
-
-جميع API endpoints تستخدم:
-
-```text
-/api/v1
-```
-
-مع استثناء:
-
-```text
-/health
-```
-
-### أهم endpoints
-
-| Method | Endpoint                    | الوظيفة            |
-| ------ | --------------------------- | ------------------ |
-| GET    | `/health`                   | فحص حالة API       |
-| POST   | `/api/v1/analyze`           | تحليل رسالة        |
-| POST   | `/api/v1/parents`           | تسجيل ولي الأمر    |
-| GET    | `/api/v1/dashboard/summary` | إحصائيات Dashboard |
-| GET    | `/api/v1/alerts`            | عرض التنبيهات      |
-| PATCH  | `/api/v1/alerts/{id}`       | تحديث حالة التنبيه |
-| POST   | `/api/v1/feedback`          | إرسال Feedback     |
-
----
-
-# 🧪 Testing
-
-يستخدم المشروع **pytest** لاختبار مكونات النظام.
-
-لتشغيل الاختبارات:
-
-```bash
-pytest tests/ -v
-```
-
-وتشمل الاختبارات أجزاء مثل:
-
-* API
-* Database
-* Alert system
-* Risk logic
-* Feedback
-* Cooldown
-* Notifications
-
----
-
-# 🔄 Workflow
-
-الـ workflow الأساسي للنظام:
-
-```text
-User Message
-     │
-     ▼
-Streamlit
-     │
-     ▼
-FastAPI
-     │
-     ▼
-MARBERTv2
-     │
-     ▼
-Classification
-     │
-     ▼
-Risk Score
-     │
-     ▼
-Risk Engine
-     │
-     ├───────────────┐
-     │               │
-     ▼               ▼
-Normal          High Risk
-                     │
-                     ▼
-                   Alert
-                     │
-                     ▼
-                    n8n
-                     │
-                     ▼
-             Parent Notification
+jupyter notebook AIN.ipynb
 ```
 
 ---
 
-# 🔒 Privacy & Safety
+## 🧠 عن النموذج: MARBERTv2
 
-AIN يتعامل مع بيانات مرتبطة بسلامة الأطفال، لذلك يجب التعامل مع البيانات بحذر.
+[MARBERTv2](https://huggingface.co/UBC-NLP/MARBERTv2) هو نموذج BERT من تطوير فريق UBC-NLP، مدرّب على كميات ضخمة من النصوص العربية الفصحى واللهجات، مما يجعله مناسبًا لمهام معالجة اللغة الطبيعية في السياق العربي مثل:
 
-في بيئة الإنتاج يجب:
+- تصنيف النصوص (Text Classification)
+- كشف المحتوى الضار (Harmful Content Detection)
+- تحليل المشاعر (Sentiment Analysis)
 
-* حماية بيانات المستخدمين.
-* عدم تخزين بيانات حساسة دون حاجة.
-* حماية مفاتيح API وWebhooks.
-* عدم رفع ملفات `.env` إلى GitHub.
-* تحديد صلاحيات الوصول إلى Dashboard.
-* توضيح للمستخدمين ما الذي تتم مراقبته وكيف تتم معالجة البيانات.
+في هذا المشروع، تم ضبط النموذج (Fine-tuning) على بيانات مخصّصة لتمييز الرسائل الخطرة الموجّهة للأطفال عن الرسائل العادية.
 
 ---
 
-# ⚠️ Disclaimer
+## 🤝 المساهمة
 
-AIN هو **نظام مساعد للكشف عن المحتوى المقلق** وليس نظامًا قادرًا على تحديد الخطر بشكل مثالي.
+المساهمات مرحّب بها لتطوير المشروع وتحسين دقته! يمكنك:
 
-قد تحدث:
-
-* False Positives
-* False Negatives
-
-لذلك لا يجب الاعتماد على النظام وحده في القرارات المتعلقة بسلامة الطفل، ويجب أن يبقى الإشراف البشري والتواصل الأسري جزءًا أساسيًا من عملية الحماية.
-
----
-
-# 🎓 Project Purpose
-
-تم تطوير **AIN** كمشروع في مجال:
-
-* Artificial Intelligence
-* Natural Language Processing
-* Arabic NLP
-* Machine Learning
-* Child Digital Safety
-* Real-Time Risk Detection
-* Automated Notifications
-
-ويجمع المشروع بين **Machine Learning Model + Backend API + Database + Web Interface + Automation Workflow** في نظام واحد متكامل.
+1. عمل Fork للمستودع.
+2. إنشاء فرع جديد للميزة أو الإصلاح: `git checkout -b feature/amazing-feature`
+3. حفظ التعديلات: `git commit -m 'إضافة ميزة جديدة'`
+4. رفع الفرع: `git push origin feature/amazing-feature`
+5. فتح Pull Request.
 
 ---
 
-## 👁️ AIN
+## ⚖️ إخلاء مسؤولية
 
-**عين — لأن حماية الطفل تبدأ من الانتباه.**
+هذا المشروع أداة مساعدة لرصد المحتوى الخطر، وليس بديلًا عن الإشراف الأبوي أو الجهات المختصة بحماية الطفل. يُنصح باستخدامه كطبقة حماية إضافية ضمن منظومة أوسع للأمان الرقمي للأطفال.
 
-🚀 **[تجربة AIN مباشرة على Streamlit](https://ainchild.streamlit.app/)**
+---
 
-💻 **[GitHub Repository](https://github.com/HamzehAlshraah/AIN)**
+## 📄 الترخيص
+
+هذا المشروع مرخّص بموجب [رخصة MIT](LICENSE) ما لم يُذكر خلاف ذلك.
+
+---
+
+## 👤 التواصل
+
+**Hamzeh Alshraah**
+GitHub: [@HamzehAlshraah](https://github.com/HamzehAlshraah)
+
+---
+
+<div align="center">
+
+إذا أعجبك المشروع، لا تنسَ ترك ⭐ على المستودع!
+
+</div>
